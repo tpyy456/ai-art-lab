@@ -9,14 +9,35 @@ const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 
 const sections = ['About', 'Tools Lab', 'Projects', 'Resume', 'Contact'];
 
-// 首页逻辑完整保留为 HomeRoute —— 内部与原 App 一字不差：
-// IntroOverlay 先显示 → ENTER SYSTEM 转场 → 主站淡入 → Hero 仅在 introComplete 后挂载。
+// 本标签页是否已完成开场，存进 sessionStorage，避免从 LAB 返回首页时重播 intro。
+// 新标签页 / 清除 sessionStorage 后仍会正常播放开场。
+const INTRO_DONE_KEY = 'tpy-intro-complete';
+
+function readIntroDone() {
+  try {
+    return sessionStorage.getItem(INTRO_DONE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+// 首页逻辑：IntroOverlay 先显示 → ENTER SYSTEM 转场 → 主站淡入 → Hero 仅在 introComplete 后挂载。
+// 与原 App 的唯一差别：introComplete 初值改为读 sessionStorage、完成时写入（仅本组件内，不改 Hero / IntroOverlay）。
 function HomeRoute() {
-  const [introComplete, setIntroComplete] = useState(false);
+  const [introComplete, setIntroComplete] = useState(readIntroDone);
+
+  const handleIntroComplete = () => {
+    try {
+      sessionStorage.setItem(INTRO_DONE_KEY, '1');
+    } catch {
+      // 忽略隐私模式等无法写入 sessionStorage 的情况
+    }
+    setIntroComplete(true);
+  };
 
   return (
     <>
-      {!introComplete && <IntroOverlay onComplete={() => setIntroComplete(true)} />}
+      {!introComplete && <IntroOverlay onComplete={handleIntroComplete} />}
       <motion.main
         initial={false}
         animate={{ opacity: introComplete ? 1 : 0 }}
