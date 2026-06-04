@@ -1,19 +1,25 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from './features/home';
 import IntroOverlay from './features/intro/IntroOverlay';
+import LabLayout from './features/lab/LabLayout';
+
+const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 
 const sections = ['About', 'Tools Lab', 'Projects', 'Resume', 'Contact'];
 
-function App() {
+// 首页逻辑完整保留为 HomeRoute —— 内部与原 App 一字不差：
+// IntroOverlay 先显示 → ENTER SYSTEM 转场 → 主站淡入 → Hero 仅在 introComplete 后挂载。
+function HomeRoute() {
   const [introComplete, setIntroComplete] = useState(false);
 
   return (
     <>
       {!introComplete && <IntroOverlay onComplete={() => setIntroComplete(true)} />}
-      <motion.main 
+      <motion.main
         initial={false}
-        animate={{ opacity: introComplete ? 1 : 0 }} 
+        animate={{ opacity: introComplete ? 1 : 0 }}
         transition={{ duration: 1.2, ease: "easeOut" }}
         className="min-h-screen bg-lab-black text-white"
         style={{
@@ -55,6 +61,34 @@ function App() {
         </section>
       </motion.main>
     </>
+  );
+}
+
+function LabFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-lab-black">
+      <p className="text-[11px] uppercase tracking-[0.4em] text-white/40">Loading module…</p>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomeRoute />} />
+        <Route
+          path="/lab/_skeleton"
+          element={
+            <LabLayout title="SKELETON LAB">
+              <Suspense fallback={<LabFallback />}>
+                <SkeletonLab />
+              </Suspense>
+            </LabLayout>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
