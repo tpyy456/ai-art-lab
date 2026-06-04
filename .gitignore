@@ -1,0 +1,13 @@
+node_modules
+dist
+.tools
+qa-screenshots
+*.tsbuildinfo
+.env
+.env.*
+*.local
+
+# 备份与大素材目录（非构建依赖，外部归档，不入库）
+个站备份/
+两个demo/
+c参考图片/
