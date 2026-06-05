@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import CursorGlow from './components/CursorGlow';
 import ParticleField from './components/ParticleField';
+import AudioDock from './components/AudioDock';
 import DivineDavidCanvas from '../divine-david/DivineDavidCanvas';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -259,6 +260,8 @@ function Hero() {
           </motion.div>
         </div>
       </div>
+
+      <AudioDock />
 
       <motion.div
         aria-hidden="true"

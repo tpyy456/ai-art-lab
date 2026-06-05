@@ -1,0 +1,2 @@
+# 占位目录：把首页背景音乐放在这里，命名为 home-ambient.mp3
+# AudioDock 读取 /audio/home-ambient.mp3；文件缺失时显示 AUDIO SOURCE MISSING（不报错）。
