@@ -6,6 +6,7 @@ import CursorGlow from './components/CursorGlow';
 import ParticleField from './components/ParticleField';
 import AudioDock from './components/AudioDock';
 import DivineDavidCanvas from '../divine-david/DivineDavidCanvas';
+import { RedScanOverlay } from '../../components/transition/RedScanTransition';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -263,46 +264,7 @@ function Hero() {
 
       <AudioDock />
 
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[70] bg-black"
-        initial={false}
-        animate={{
-          opacity: transitioning ? 1 : 0,
-          pointerEvents: transitioning ? 'auto' : 'none',
-        }}
-        transition={{ duration: 0.18 }}
-      >
-        <motion.div
-          className="absolute inset-0 z-10 flex items-center justify-center text-sm font-semibold uppercase tracking-[0.34em] text-lab-red sm:text-lg"
-          initial={false}
-          animate={{
-            opacity: transitioning ? [0, 1, 0.35] : 0,
-            y: transitioning ? [16, 0, -8] : 16,
-          }}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-        >
-          SYSTEM ACTIVATED
-        </motion.div>
-        <motion.div
-          className="scanline-mask absolute left-0 top-1/2 h-1 w-full bg-lab-red shadow-red"
-          initial={false}
-          animate={{
-            y: transitioning ? ['-45vh', '0vh', '45vh'] : '-45vh',
-            opacity: transitioning ? [0, 1, 0] : 0,
-          }}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-        />
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lab-red blur-xl"
-          initial={false}
-          animate={{
-            scale: transitioning ? [0.2, 18] : 0.2,
-            opacity: transitioning ? [0, 0.65, 0] : 0,
-          }}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-        />
-      </motion.div>
+      <RedScanOverlay active={transitioning} />
     </section>
   );
 }

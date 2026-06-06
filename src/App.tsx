@@ -5,7 +5,7 @@ import Hero from './features/home';
 import IntroOverlay from './features/intro/IntroOverlay';
 import LabLayout from './features/lab/LabLayout';
 import AiLabPanel from './features/lab/AiLabPanel';
-import { LaserTransitionProvider } from './components/transition/RedLaserTransition';
+import { ScanTransitionProvider } from './components/transition/RedScanTransition';
 
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
@@ -130,7 +130,7 @@ function LabFallback() {
 function App() {
   return (
     <BrowserRouter>
-      <LaserTransitionProvider>
+      <ScanTransitionProvider>
         <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route
@@ -154,7 +154,7 @@ function App() {
           }
         />
         </Routes>
-      </LaserTransitionProvider>
+      </ScanTransitionProvider>
     </BrowserRouter>
   );
 }

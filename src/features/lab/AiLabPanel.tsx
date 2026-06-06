@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useLaserTransition } from '../../components/transition/RedLaserTransition';
+import { useScanTransition } from '../../components/transition/RedScanTransition';
 
 // AI LAB 内嵌实验室面板（系统窗口 / 控制台风格，非普通弹窗）。
 // 列出 LAB 模块：TEXT COLLAPSE 可进入（走红色激光转场），其余为占位（未开发）。
@@ -20,7 +20,7 @@ const MODULES: LabModule[] = [
 ];
 
 export default function AiLabPanel({ open, onClose }: Props) {
-  const { navigateWithLaser } = useLaserTransition();
+  const { navigateWithScan } = useScanTransition();
 
   return (
     <AnimatePresence>
@@ -76,7 +76,7 @@ export default function AiLabPanel({ open, onClose }: Props) {
                     type="button"
                     disabled={!active}
                     onClick={() => {
-                      if (active && m.to) navigateWithLaser(m.to);
+                      if (active && m.to) navigateWithScan(m.to);
                     }}
                     className={`group flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-300 ${
                       active ? 'hover:bg-lab-red/[0.06]' : 'cursor-not-allowed'
