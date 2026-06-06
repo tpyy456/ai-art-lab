@@ -1,18 +1,23 @@
 import { buildMatrix, createRandom, RES, TIMING } from './matrix';
-import type { AnimationPhase, Cell, EngineOptions, Fragment, Matrix } from './types';
+import type { AnimationPhase, EngineOptions, Fragment, GridShard, Matrix } from './types';
 
 const MIN_SIZE = 120;
 
-// 伪物理参数（dt 以毫秒计；v 为 px/ms；G 为 px/ms^2）
+// 伪物理参数（dt 毫秒；v 为 px/ms；G 为 px/ms^2）
 const PHYS = {
-  gravity: 0.0017,
-  stickDamp: 0.16, // 卡住瞬间纵向速度骤降
+  gravity: 0.0016,
+  stickDamp: 0.14, // 卡住瞬间纵向速度骤降
   stickCreep: 0.0004, // 卡住时缓慢蠕动
-  tearBoost: 0.06, // 挣脱后纵向突进
+  tearBoost: 0.05, // 挣脱后纵向突进
   tearSpread: 0.05, // 挣脱后横向撕开
-  tearSpin: 0.004, // 挣脱后旋转
-  gridGravity: 0.00085,
-  gridDamp: 0.99,
+  tearSpin: 0.006, // 挣脱后旋转
+  initSpread: 0.012, // 释放瞬间初速差异
+  initSpin: 0.0035,
+  gridGravity: 0.0014, // 网格碎块重力
+  gridRowStep: 115, // 网格断裂从上往下传导
+  gridNoise: 240,
+  gridSpin: 0.0045,
+  gridDrift: 0.02,
 };
 
 export class CollapseEngine {
@@ -26,9 +31,9 @@ export class CollapseEngine {
   private matrix: Matrix | null = null;
 
   private phase: AnimationPhase = 'idle';
-  private elapsed = 0; // 总时钟（wall-clock，相对 startTime）
-  private phaseElapsed = 0; // 当前阶段时钟（wall-clock，不受 RAF 节流影响）
-  private collapseClock = 0; // 坍塌+落定阶段的下坠时钟（wall-clock）
+  private elapsed = 0;
+  private phaseElapsed = 0; // wall-clock，不受 RAF 节流影响
+  private collapseClock = 0;
   private startTime = 0;
   private phaseStart = 0;
   private collapseStart = 0;
@@ -64,7 +69,7 @@ export class CollapseEngine {
     this.matrix = buildMatrix(this.cssW, this.cssH);
     this.collapseClock = 0;
     this.startTime = performance.now();
-    this.phase = 'collapsed'; // 强制让下面 setPhase('idle') 生效（绕过同值早退）
+    this.phase = 'collapsed'; // 绕过 setPhase 同值早退
     this.setPhase('idle');
   }
 
@@ -75,7 +80,6 @@ export class CollapseEngine {
     this.resizeObserver.disconnect();
   }
 
-  // ---- 内部 ----
   private setPhase(p: AnimationPhase) {
     if (this.phase === p) return;
     this.phase = p;
@@ -93,7 +97,6 @@ export class CollapseEngine {
     const h = Math.round(this.canvas.clientHeight);
     if (w < MIN_SIZE || h < MIN_SIZE) return;
     if (w === this.cssW && h === this.cssH && this.matrix) return;
-
     this.cssW = w;
     this.cssH = h;
     this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -106,25 +109,21 @@ export class CollapseEngine {
 
   private loop = (time: number) => {
     if (this.disposed) return;
-    const dt = Math.min(40, time - (this.lastTime || time)); // 物理积分用，clamp 防大跳
+    const dt = Math.min(40, time - (this.lastTime || time));
     this.lastTime = time;
-    // 阶段/释放计时用 wall-clock，不受 RAF 节流影响（后台标签回来不会卡住）
     this.elapsed = time - this.startTime;
     this.phaseElapsed = time - this.phaseStart;
     if (this.phase === 'collapsing' || this.phase === 'settling') {
       this.collapseClock = time - this.collapseStart;
     }
-
     this.update(dt);
     this.draw();
-
     this.rafId = requestAnimationFrame(this.loop);
   };
 
   private update(dt: number) {
     const m = this.matrix;
     if (!m) return;
-
     switch (this.phase) {
       case 'activating':
         this.updateTremor();
@@ -132,16 +131,15 @@ export class CollapseEngine {
         break;
       case 'collapsing':
         this.updateFragments(dt, m);
-        if (this.allRested(m) || this.collapseClock >= TIMING.collapseTimeout) {
-          this.setPhase('settling');
-        }
+        if (this.allRested(m) || this.collapseClock >= TIMING.collapseTimeout) this.setPhase('settling');
         break;
       case 'settling':
         this.updateFragments(dt, m);
         if (this.phaseElapsed >= TIMING.settling) this.setPhase('gridFalling');
         break;
       case 'gridFalling':
-        this.updateGrid(dt, m);
+        if (m.gridShards.length === 0) this.buildGridShards(m);
+        this.updateShards(dt, m);
         if (this.phaseElapsed >= TIMING.gridFalling) this.setPhase('collapsed');
         break;
       default:
@@ -155,10 +153,10 @@ export class CollapseEngine {
     const t = this.phaseElapsed;
     for (const cell of m.cells) {
       if (cell.row > 1) continue;
-      const amp = cell.row === 0 ? 1.8 : 0.7;
+      const amp = cell.row === 0 ? 1.9 : 0.7;
       for (const f of cell.fragments) {
-        f.dx = Math.sin(t * 0.02 + f.pivotX) * amp * 0.6;
-        f.dy = Math.sin(t * 0.024 + f.pivotY) * amp;
+        f.dx = Math.sin(t * 0.021 + f.pivotX) * amp * 0.6;
+        f.dy = Math.sin(t * 0.025 + f.pivotY) * amp;
       }
     }
   }
@@ -169,28 +167,33 @@ export class CollapseEngine {
       for (const f of cell.fragments) {
         if (f.state === 'rested') continue;
         if (t < f.releaseTime) continue;
-        if (f.state === 'placed') f.state = 'falling';
+        if (f.state === 'placed') {
+          f.state = 'falling';
+          f.vx += (this.rand() - 0.5) * PHYS.initSpread; // 释放瞬间初速差异（错开）
+          f.vrot += (this.rand() - 0.5) * PHYS.initSpin;
+        }
 
-        // 重力
-        f.vy += PHYS.gravity * dt;
+        f.vy += PHYS.gravity * f.gravityScale * dt; // 重量/惯性差异
         f.dy += f.vy * dt;
         f.dx += f.vx * dt;
         f.rot += f.vrot * dt;
 
         const worldY = cell.y + f.pivotY + f.dy;
 
-        // 落地堆积
-        if (worldY >= m.floorY) {
-          f.dy = m.floorY - (cell.y + f.pivotY) - this.rand() * cell.size * 0.12;
+        // 落地成 debris（保留，不清空）
+        const restLine = m.floorY + (this.rand() - 0.5) * cell.size * 0.5;
+        if (worldY >= restLine) {
+          f.dy = restLine - (cell.y + f.pivotY);
           f.vy = 0;
-          f.vx *= 0.4;
-          f.vrot *= 0.3;
+          f.vx *= 0.25;
+          f.vrot *= 0.15;
+          f.restRed = Math.min(0.55, f.restRed + 0.12 + this.rand() * 0.1);
           f.state = 'rested';
           continue;
         }
 
-        // 格线摩擦卡顿
-        if (f.state !== 'stuck' && worldY >= f.nextStickY) {
+        // 格线摩擦卡顿（多次、差异化）
+        if (f.state !== 'stuck' && f.sticksLeft > 0 && worldY >= f.nextStickY) {
           f.state = 'stuck';
           f.vy *= PHYS.stickDamp;
           f.vrot *= 0.5;
@@ -200,12 +203,12 @@ export class CollapseEngine {
           f.strain += dt;
           f.vy += PHYS.stickCreep * dt;
           if (f.strain >= f.breakFree) {
-            // 被拽开、撕裂、继续坠落
             f.state = 'falling';
             f.vy += PHYS.tearBoost;
-            f.vx += (this.rand() - 0.5) * PHYS.tearSpread;
+            f.vx += (this.rand() - 0.5) * PHYS.tearSpread; // 撕开横向
             f.vrot += (this.rand() - 0.5) * PHYS.tearSpin;
             f.nextStickY += cell.size;
+            f.sticksLeft -= 1;
             f.strain = 0;
           }
         }
@@ -215,22 +218,69 @@ export class CollapseEngine {
 
   private allRested(m: Matrix): boolean {
     for (const cell of m.cells) {
-      for (const f of cell.fragments) {
-        if (f.state !== 'rested') return false;
-      }
+      for (const f of cell.fragments) if (f.state !== 'rested') return false;
     }
     return true;
   }
 
-  private updateGrid(dt: number, m: Matrix) {
-    for (let i = 1; i <= m.rows; i++) {
-      for (let j = 0; j <= m.cols; j++) {
-        const node = m.nodes[i][j];
-        if (this.phaseElapsed < node.fallDelay) continue;
-        node.vy += PHYS.gridGravity * dt;
-        node.vy *= PHYS.gridDamp;
-        node.y += node.vy * dt;
-        if (node.y > this.cssH + 60) node.y = this.cssH + 60;
+  // 进入 gridFalling 时把田字格线网离散成可下落的线段碎块
+  private buildGridShards(m: Matrix) {
+    const shards: GridShard[] = [];
+    const mk = (ax: number, ay: number, bx: number, by: number, red: number) => {
+      const cx = (ax + bx) / 2;
+      const cy = (ay + by) / 2;
+      const len = Math.hypot(bx - ax, by - ay);
+      const row = Math.max(0, Math.min(m.rows, Math.round((cy - m.originY) / m.cellSize)));
+      shards.push({
+        cx,
+        cy,
+        angle: Math.atan2(by - ay, bx - ax),
+        half: len / 2,
+        vx: (this.rand() - 0.5) * PHYS.gridDrift,
+        vy: 0,
+        vrot: (this.rand() - 0.5) * PHYS.gridSpin,
+        state: 'intact',
+        fallDelay: Math.max(0, row * PHYS.gridRowStep + this.rand() * PHYS.gridNoise),
+        red,
+        row,
+      });
+    };
+
+    // 外框线 → 每条断成一段碎块
+    for (const e of m.edges) {
+      const red = e.broken ? 0.28 + this.rand() * 0.35 : this.rand() * 0.12;
+      mk(e.a.x, e.a.y, e.b.x, e.b.y, red);
+    }
+    // 每个田字格的内十字 → 中竖 + 中横（四角中点）
+    for (let i = 0; i < m.rows; i++) {
+      for (let j = 0; j < m.cols; j++) {
+        const n00 = m.nodes[i][j];
+        const n01 = m.nodes[i][j + 1];
+        const n10 = m.nodes[i + 1][j];
+        const n11 = m.nodes[i + 1][j + 1];
+        mk((n00.x + n01.x) / 2, (n00.y + n01.y) / 2, (n10.x + n11.x) / 2, (n10.y + n11.y) / 2, this.rand() * 0.1);
+        mk((n00.x + n10.x) / 2, (n00.y + n10.y) / 2, (n01.x + n11.x) / 2, (n01.y + n11.y) / 2, this.rand() * 0.1);
+      }
+    }
+    m.gridShards = shards;
+  }
+
+  private updateShards(dt: number, m: Matrix) {
+    const t = this.phaseElapsed;
+    for (const s of m.gridShards) {
+      if (s.state === 'rested') continue;
+      if (t < s.fallDelay) continue; // 失张/断裂前保持原位
+      if (s.state === 'intact') s.state = 'falling';
+      s.vy += PHYS.gridGravity * dt;
+      s.cy += s.vy * dt;
+      s.cx += s.vx * dt;
+      s.angle += s.vrot * dt;
+      const restLine = m.floorY + (this.rand() - 0.5) * m.cellSize * 0.6;
+      if (s.cy >= restLine) {
+        s.cy = restLine;
+        s.vy = 0;
+        s.vrot *= 0.18;
+        s.state = 'rested';
       }
     }
   }
@@ -244,56 +294,41 @@ export class CollapseEngine {
     ctx.fillRect(0, 0, this.cssW, this.cssH);
     if (!m) return;
 
-    this.drawGrid(m);
-    this.drawScanline(m);
+    const shattered = this.phase === 'gridFalling' || this.phase === 'collapsed';
+    if (shattered) this.drawShards(m);
+    else this.drawStaticGrid(m);
+    if (this.phase === 'idle') this.drawScanline(m);
     this.drawFragments(m);
     this.drawResidue(m);
   }
 
-  private gridAlpha(): number {
-    if (this.phase === 'gridFalling') {
-      return 0.18 * Math.max(0.04, 1 - (this.phaseElapsed / TIMING.gridFalling) * 0.9);
-    }
-    if (this.phase === 'collapsed') return 0.02;
-    return 0.18;
-  }
-
-  private drawGrid(m: Matrix) {
+  private drawStaticGrid(m: Matrix) {
     const ctx = this.ctx;
-    const collapsing = this.phase === 'gridFalling' || this.phase === 'collapsed';
     ctx.lineWidth = 1;
-    ctx.strokeStyle = `rgba(214,220,230,${this.gridAlpha().toFixed(3)})`;
+    ctx.strokeStyle = 'rgba(214,220,230,0.18)';
     ctx.beginPath();
-
-    // 外框线网（节点连线）
     for (const e of m.edges) {
-      if (collapsing && e.broken) continue;
       ctx.moveTo(e.a.x, e.a.y);
       ctx.lineTo(e.b.x, e.b.y);
     }
-
-    // 每个田字格的内十字（用四角节点中点插值，随倒塌自动变形）
     for (let i = 0; i < m.rows; i++) {
       for (let j = 0; j < m.cols; j++) {
         const n00 = m.nodes[i][j];
         const n01 = m.nodes[i][j + 1];
         const n10 = m.nodes[i + 1][j];
         const n11 = m.nodes[i + 1][j + 1];
-        // 中竖
         ctx.moveTo((n00.x + n01.x) / 2, (n00.y + n01.y) / 2);
         ctx.lineTo((n10.x + n11.x) / 2, (n10.y + n11.y) / 2);
-        // 中横
         ctx.moveTo((n00.x + n10.x) / 2, (n00.y + n10.y) / 2);
         ctx.lineTo((n01.x + n11.x) / 2, (n01.y + n11.y) / 2);
       }
     }
     ctx.stroke();
 
-    // 坍塌中：高亮"当前正在释放"的那条横线（红=受力激活）
     if (this.phase === 'collapsing') {
       const activeRow = Math.min(m.rows, 1 + Math.floor(this.collapseClock / 300));
       const y = m.originY + activeRow * m.cellSize;
-      ctx.strokeStyle = 'rgba(214,30,32,0.32)';
+      ctx.strokeStyle = 'rgba(214,30,32,0.3)';
       ctx.beginPath();
       ctx.moveTo(m.originX, y);
       ctx.lineTo(m.originX + m.cols * m.cellSize, y);
@@ -301,10 +336,36 @@ export class CollapseEngine {
     }
   }
 
-  private drawScanline(m: Matrix) {
-    if (this.phase !== 'idle') return;
+  private drawShards(m: Matrix) {
     const ctx = this.ctx;
-    const p = (Math.sin(this.elapsed * 0.0011) * 0.5 + 0.5);
+    ctx.lineWidth = 1;
+    // 灰白碎段
+    ctx.strokeStyle = 'rgba(206,213,224,0.5)';
+    ctx.beginPath();
+    for (const s of m.gridShards) {
+      if (s.red >= 0.22) continue;
+      const c = Math.cos(s.angle) * s.half;
+      const sn = Math.sin(s.angle) * s.half;
+      ctx.moveTo(s.cx - c, s.cy - sn);
+      ctx.lineTo(s.cx + c, s.cy + sn);
+    }
+    ctx.stroke();
+    // 暗红激活碎段
+    ctx.strokeStyle = 'rgba(150,26,28,0.52)';
+    ctx.beginPath();
+    for (const s of m.gridShards) {
+      if (s.red < 0.22) continue;
+      const c = Math.cos(s.angle) * s.half;
+      const sn = Math.sin(s.angle) * s.half;
+      ctx.moveTo(s.cx - c, s.cy - sn);
+      ctx.lineTo(s.cx + c, s.cy + sn);
+    }
+    ctx.stroke();
+  }
+
+  private drawScanline(m: Matrix) {
+    const ctx = this.ctx;
+    const p = Math.sin(this.elapsed * 0.0011) * 0.5 + 0.5;
     const y = m.originY + p * m.rows * m.cellSize;
     ctx.strokeStyle = 'rgba(214,30,32,0.07)';
     ctx.lineWidth = 1;
@@ -345,20 +406,27 @@ export class CollapseEngine {
   private applyFragmentStyle(f: Fragment) {
     let redness = 0;
     if (f.state === 'stuck') redness = Math.min(1, f.strain / f.breakFree) * 0.85;
-    const alpha = f.state === 'rested' ? 0.5 : 0.92;
-    const r = Math.round(226 + (210 - 226) * redness);
-    const g = Math.round(228 + (38 - 228) * redness);
-    const b = Math.round(232 + (36 - 232) * redness);
+    else if (f.state === 'rested') redness = f.restRed;
+    const alpha = f.state === 'rested' ? 0.52 : 0.92;
+    const r = Math.round(226 + (208 - 226) * redness);
+    const g = Math.round(228 + (40 - 228) * redness);
+    const b = Math.round(232 + (38 - 232) * redness);
     this.ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
   }
 
   private drawResidue(m: Matrix) {
     if (this.phase !== 'settling' && this.phase !== 'gridFalling' && this.phase !== 'collapsed') return;
     const ctx = this.ctx;
-    const grad = ctx.createLinearGradient(0, m.floorY - m.cellSize * 0.3, 0, this.cssH);
+    const top = m.floorY - m.cellSize * 0.5;
+    const grad = ctx.createLinearGradient(0, top, 0, this.cssH);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.45)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.5)');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, m.floorY - m.cellSize * 0.3, this.cssW, this.cssH - (m.floorY - m.cellSize * 0.3));
+    ctx.fillRect(0, top, this.cssW, this.cssH - top);
   }
+
+  // —— 预留：后续「从废墟重塑成花」——
+  // 数据已就绪：rested 文字碎片（cells[].fragments, 含 dx/dy/rot/restRed）
+  // + rested 网格碎块（matrix.gridShards, 含 cx/cy/angle）+ matrix.flowerSeed + matrix.reformTargets。
+  // 下一阶段会读取这些 debris 并补间到 reformTargets（花形）。本轮不实现。
 }

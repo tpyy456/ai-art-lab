@@ -1,6 +1,6 @@
 import type { Cell, Fragment, GridEdge, GridNode, Matrix, PixelCell } from './types';
 
-// ---- 固定文本（6 行；不改句意、不删核心；短行将居中放入 9 列网格）----
+// ---- 固定文本（6 行；不改句意；短行居中放入 9 列网格）----
 const TEXT_LINES = [
   '我不是突然变得破碎', // 9
   '只是沉默太久以后', // 8
@@ -16,19 +16,22 @@ export const RES = 16; // 每字点阵分辨率（低分辨率 → 像素/字模
 
 // ---- 动画节奏常量（毫秒）----
 export const TIMING = {
-  activating: 560,
-  collapseTimeout: 4800, // 安全兜底：超时强制进入 settling
-  settling: 680,
-  gridFalling: 1700,
+  activating: 600,
+  collapseTimeout: 5200, // 安全兜底：超时强制进入 settling
+  settling: 900,
+  gridFalling: 2200,
 };
 
+// 释放时机：行主导（保留从上到下），但叠加大量错位/噪声让它不机械
 const COLLAPSE = {
-  rowStep: 300, // 行传导步长：行越靠下越晚释放
-  colJitter: 22, // 列方向错位
-  quadLowerDelay: 110, // 下半象限比上半象限晚一点 → 字从上半先解体
-  noise: 70, // 释放时刻随机扰动
-  breakFreeBase: 120, // 卡住后挣脱所需的基础应力(ms)
-  breakFreeRand: 220,
+  rowStep: 300, // 行传导步长（仍主导，保证上崩下后）
+  colJitter: 38, // 列方向系统错位
+  colNoise: 90, // 列方向随机
+  quadLowerBias: 70, // 下半象限略晚
+  quadNoise: 190, // 每象限独立随机延迟（同字 4 象限不同步）
+  noise: 160, // 总扰动
+  breakFreeBase: 90, // 卡住后挣脱基础应力(ms)
+  breakFreeRand: 380, // 拉大卡顿差异：有的一卡就走、有的被狠狠拽住
 };
 
 // 带种子伪随机（同一种子坍塌节奏一致、可控、不发散）
@@ -85,7 +88,6 @@ function quadrantOf(p: PixelCell): 0 | 1 | 2 | 3 {
   return 3;
 }
 
-// 四象限中心（相对字格左上的像素），用于碎片旋转
 function quadPivot(quadrant: 0 | 1 | 2 | 3, u: number): { px: number; py: number } {
   const cx = quadrant === 1 || quadrant === 3 ? HALF + HALF / 2 : HALF / 2;
   const cy = quadrant === 2 || quadrant === 3 ? HALF + HALF / 2 : HALF / 2;
@@ -111,11 +113,17 @@ function buildFragments(
     if (bucket.length === 0) continue;
     const quadrant = q as 0 | 1 | 2 | 3;
     const { px, py } = quadPivot(quadrant, u);
-    const releaseTime =
+
+    // 行主导 + 列错位 + 每象限独立随机 → 从上到下但不机械
+    const releaseTime = Math.max(
+      0,
       row * COLLAPSE.rowStep +
-      col * COLLAPSE.colJitter +
-      (quadrant >= 2 ? COLLAPSE.quadLowerDelay : 0) +
-      (random() - 0.5) * 2 * COLLAPSE.noise;
+        col * COLLAPSE.colJitter +
+        (random() - 0.5) * 2 * COLLAPSE.colNoise +
+        (quadrant >= 2 ? COLLAPSE.quadLowerBias : 0) +
+        random() * COLLAPSE.quadNoise +
+        (random() - 0.5) * 2 * COLLAPSE.noise,
+    );
 
     fragments.push({
       quadrant,
@@ -131,8 +139,11 @@ function buildFragments(
       state: 'placed',
       strain: 0,
       breakFree: COLLAPSE.breakFreeBase + random() * COLLAPSE.breakFreeRand,
-      releaseTime: Math.max(0, releaseTime),
+      releaseTime,
       nextStickY: originY + (row + 1) * size,
+      gravityScale: 0.82 + random() * 0.5, // 重量差异
+      sticksLeft: 1 + Math.floor(random() * 3), // 卡顿次数差异
+      restRed: 0,
     });
   }
   return fragments;
@@ -148,8 +159,8 @@ export function buildMatrix(width: number, height: number): Matrix {
   const gridW = COLS * cellSize;
   const gridH = ROWS * cellSize;
   const originX = (width - gridW) / 2;
-  const originY = Math.max(cellSize * 0.6, (height - gridH) * 0.4);
-  const floorY = originY + gridH + cellSize * 0.55;
+  const originY = Math.max(cellSize * 0.6, (height - gridH) * 0.36);
+  const floorY = originY + gridH + cellSize * 0.7;
 
   const cells: Cell[] = [];
   for (let row = 0; row < ROWS; row++) {
@@ -159,37 +170,26 @@ export function buildMatrix(width: number, height: number): Matrix {
     for (let col = 0; col < COLS; col++) {
       const inRange = col >= startCol && col < startCol + n;
       const char = inRange ? line.charAt(col - startCol) : null;
-      const x = originX + col * cellSize;
-      const y = originY + row * cellSize;
       cells.push({
         char,
         row,
         col,
-        x,
-        y,
+        x: originX + col * cellSize,
+        y: originY + row * cellSize,
         size: cellSize,
         fragments: char ? buildFragments(char, cellSize, row, col, originY, random) : [],
       });
     }
   }
 
-  // 节点网格（外框线网 + 内十字插值的支撑）
+  // 静态线网（idle/collapsing 画规整田字格用）
   const nodes: GridNode[][] = [];
   for (let i = 0; i <= ROWS; i++) {
     const rowNodes: GridNode[] = [];
     for (let j = 0; j <= COLS; j++) {
-      const bx = originX + j * cellSize;
-      const by = originY + i * cellSize;
-      rowNodes.push({
-        i,
-        j,
-        baseX: bx,
-        baseY: by,
-        x: bx,
-        y: by,
-        vy: 0,
-        fallDelay: i * 45, // 倒塌从上往下传导
-      });
+      const x = originX + j * cellSize;
+      const y = originY + i * cellSize;
+      rowNodes.push({ i, j, x, y });
     }
     nodes.push(rowNodes);
   }
@@ -197,10 +197,23 @@ export function buildMatrix(width: number, height: number): Matrix {
   const edges: GridEdge[] = [];
   for (let i = 0; i <= ROWS; i++) {
     for (let j = 0; j <= COLS; j++) {
-      if (j < COLS) edges.push({ a: nodes[i][j], b: nodes[i][j + 1], broken: random() < 0.16 });
-      if (i < ROWS) edges.push({ a: nodes[i][j], b: nodes[i + 1][j], broken: random() < 0.16 });
+      if (j < COLS) edges.push({ a: nodes[i][j], b: nodes[i][j + 1], broken: random() < 0.18 });
+      if (i < ROWS) edges.push({ a: nodes[i][j], b: nodes[i + 1][j], broken: random() < 0.18 });
     }
   }
 
-  return { rows: ROWS, cols: COLS, cellSize, originX, originY, floorY, cells, nodes, edges };
+  return {
+    rows: ROWS,
+    cols: COLS,
+    cellSize,
+    originX,
+    originY,
+    floorY,
+    cells,
+    nodes,
+    edges,
+    gridShards: [], // gridFalling 时填充
+    flowerSeed: Math.floor(random() * 1e9), // 预留给后续花
+    reformTargets: [], // 预留（本轮空）
+  };
 }
