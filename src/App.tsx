@@ -1,14 +1,22 @@
 import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from './features/home';
 import IntroOverlay from './features/intro/IntroOverlay';
 import LabLayout from './features/lab/LabLayout';
+import AiLabPanel from './features/lab/AiLabPanel';
+import { LaserTransitionProvider } from './components/transition/RedLaserTransition';
 
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
-const sections = ['About', 'Tools Lab', 'Projects', 'Resume', 'Contact'];
+const sections: { label: string; sub: string; lab?: boolean }[] = [
+  { label: 'About', sub: '关于我' },
+  { label: 'AI LAB', sub: 'AI 实验室', lab: true },
+  { label: 'Projects', sub: '项目' },
+  { label: 'Resume', sub: '简历' },
+  { label: 'Contact', sub: '联系我' },
+];
 
 // 本标签页是否已完成开场，存进 sessionStorage，避免从 LAB 返回首页时重播 intro。
 // 新标签页 / 清除 sessionStorage 后仍会正常播放开场。
@@ -26,6 +34,7 @@ function readIntroDone() {
 // 与原 App 的唯一差别：introComplete 初值改为读 sessionStorage、完成时写入（仅本组件内，不改 Hero / IntroOverlay）。
 function HomeRoute() {
   const [introComplete, setIntroComplete] = useState(readIntroDone);
+  const [labOpen, setLabOpen] = useState(false);
 
   const handleIntroComplete = () => {
     try {
@@ -63,46 +72,49 @@ function HomeRoute() {
               </h2>
             </div>
 
-            {/* 当前活跃 LAB 模块入口：TEXT COLLAPSE（黑底细线 / 红色激活 / 冷感，非普通按钮） */}
-            <Link
-              to="/lab/text-collapse"
-              className="group relative block overflow-hidden border border-white/10 bg-[#080808] p-7 transition-colors duration-300 hover:border-lab-red/50 hover:bg-[#0b0b0b]"
-            >
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-lab-muted">
-                <span className="inline-flex items-center gap-2 text-lab-red">
-                  <span className="h-1.5 w-1.5 rounded-full bg-lab-red" />
-                  Active Module
-                </span>
-                <span className="text-white/40 transition-colors duration-300 group-hover:text-lab-red">Enter →</span>
-              </div>
-              <h3 className="mt-7 text-2xl font-semibold uppercase tracking-[0.18em] text-white sm:text-3xl">
-                Text Collapse
-              </h3>
-              <p className="mt-2 text-xs tracking-[0.04em] text-white/45">
-                Chinese character grid collapse experiment
-              </p>
-              <span className="pointer-events-none absolute -bottom-px left-0 h-px w-0 bg-lab-red transition-all duration-500 group-hover:w-full" />
-            </Link>
-
             <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-5">
-              {sections.map((section, index) => (
-                <article
-                  key={section}
-                  className="group min-h-64 bg-[#080808] p-6 transition-colors duration-300 hover:bg-[#101010]"
-                >
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.28em] text-lab-muted">
-                    <span>0{index + 1}</span>
-                    <span className="h-px w-8 bg-white/20 transition-colors group-hover:bg-lab-red" />
-                  </div>
-                  <h3 className="mt-16 text-xl font-medium uppercase tracking-[0.18em] text-white">
-                    {section}
-                  </h3>
-                </article>
-              ))}
+              {sections.map((section, index) => {
+                const inner = (
+                  <>
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.28em] text-lab-muted">
+                      <span>0{index + 1}</span>
+                      {section.lab ? (
+                        <span className="inline-flex items-center gap-1.5 text-lab-red">
+                          <span className="h-1.5 w-1.5 rounded-full bg-lab-red" />
+                          3 Modules
+                        </span>
+                      ) : (
+                        <span className="h-px w-8 bg-white/20 transition-colors group-hover:bg-lab-red" />
+                      )}
+                    </div>
+                    <h3 className="mt-16 text-xl font-medium uppercase tracking-[0.18em] text-white">{section.label}</h3>
+                    <p className="mt-1 text-[10px] tracking-[0.22em] text-white/30">{section.sub}</p>
+                  </>
+                );
+                return section.lab ? (
+                  <button
+                    key={section.label}
+                    type="button"
+                    onClick={() => setLabOpen(true)}
+                    className="group min-h-64 cursor-pointer bg-[#080808] p-6 text-left transition-colors duration-300 hover:bg-[#101010]"
+                  >
+                    {inner}
+                  </button>
+                ) : (
+                  <article
+                    key={section.label}
+                    className="group min-h-64 bg-[#080808] p-6 transition-colors duration-300 hover:bg-[#101010]"
+                  >
+                    {inner}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
       </motion.main>
+
+      <AiLabPanel open={labOpen} onClose={() => setLabOpen(false)} />
     </>
   );
 }
@@ -118,7 +130,8 @@ function LabFallback() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <LaserTransitionProvider>
+        <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route
           path="/lab/_skeleton"
@@ -140,7 +153,8 @@ function App() {
             </LabLayout>
           }
         />
-      </Routes>
+        </Routes>
+      </LaserTransitionProvider>
     </BrowserRouter>
   );
 }
