@@ -226,40 +226,53 @@ export class CollapseEngine {
   // 进入 gridFalling 时把田字格线网离散成可下落的线段碎块
   private buildGridShards(m: Matrix) {
     const shards: GridShard[] = [];
-    const mk = (ax: number, ay: number, bx: number, by: number, red: number) => {
-      const cx = (ax + bx) / 2;
-      const cy = (ay + by) / 2;
-      const len = Math.hypot(bx - ax, by - ay);
-      const row = Math.max(0, Math.min(m.rows, Math.round((cy - m.originY) / m.cellSize)));
-      shards.push({
-        cx,
-        cy,
-        angle: Math.atan2(by - ay, bx - ax),
-        half: len / 2,
-        vx: (this.rand() - 0.5) * PHYS.gridDrift,
-        vy: 0,
-        vrot: (this.rand() - 0.5) * PHYS.gridSpin,
-        state: 'intact',
-        fallDelay: Math.max(0, row * PHYS.gridRowStep + this.rand() * PHYS.gridNoise),
-        red,
-        row,
-      });
+    // 把一条网格线切成 2 段不等长碎段（中间留断口），各段独立角度/弯折/速度 → 不再是死直线
+    const pushSeg = (ax: number, ay: number, bx: number, by: number, baseRed: number) => {
+      const mid = 0.5 + (this.rand() - 0.5) * 0.24;
+      const gap = 0.05 + this.rand() * 0.05;
+      const cuts: Array<[number, number]> = [
+        [this.rand() * 0.04, mid - gap],
+        [mid + gap, 1 - this.rand() * 0.04],
+      ];
+      for (const [t0, t1] of cuts) {
+        const sax = ax + (bx - ax) * t0;
+        const say = ay + (by - ay) * t0;
+        const sbx = ax + (bx - ax) * t1;
+        const sby = ay + (by - ay) * t1;
+        const len = Math.hypot(sbx - sax, sby - say);
+        if (len < 1.5) continue;
+        const cx = (sax + sbx) / 2;
+        const cy = (say + sby) / 2;
+        const row = Math.max(0, Math.min(m.rows, Math.round((cy - m.originY) / m.cellSize)));
+        shards.push({
+          cx,
+          cy,
+          angle: Math.atan2(sby - say, sbx - sax),
+          half: len / 2,
+          bend: (this.rand() - 0.5) * len * 0.22, // 断裂弯折
+          vx: (this.rand() - 0.5) * PHYS.gridDrift,
+          vy: 0,
+          vrot: (this.rand() - 0.5) * PHYS.gridSpin,
+          state: 'intact',
+          fallDelay: Math.max(0, row * PHYS.gridRowStep + this.rand() * PHYS.gridNoise),
+          red: baseRed * (0.6 + this.rand() * 0.7),
+          row,
+        });
+      }
     };
 
-    // 外框线 → 每条断成一段碎块
     for (const e of m.edges) {
-      const red = e.broken ? 0.28 + this.rand() * 0.35 : this.rand() * 0.12;
-      mk(e.a.x, e.a.y, e.b.x, e.b.y, red);
+      const red = e.broken ? 0.22 + this.rand() * 0.16 : this.rand() * 0.07;
+      pushSeg(e.a.x, e.a.y, e.b.x, e.b.y, red);
     }
-    // 每个田字格的内十字 → 中竖 + 中横（四角中点）
     for (let i = 0; i < m.rows; i++) {
       for (let j = 0; j < m.cols; j++) {
         const n00 = m.nodes[i][j];
         const n01 = m.nodes[i][j + 1];
         const n10 = m.nodes[i + 1][j];
         const n11 = m.nodes[i + 1][j + 1];
-        mk((n00.x + n01.x) / 2, (n00.y + n01.y) / 2, (n10.x + n11.x) / 2, (n10.y + n11.y) / 2, this.rand() * 0.1);
-        mk((n00.x + n10.x) / 2, (n00.y + n10.y) / 2, (n01.x + n11.x) / 2, (n01.y + n11.y) / 2, this.rand() * 0.1);
+        pushSeg((n00.x + n01.x) / 2, (n00.y + n01.y) / 2, (n10.x + n11.x) / 2, (n10.y + n11.y) / 2, this.rand() * 0.06);
+        pushSeg((n00.x + n10.x) / 2, (n00.y + n10.y) / 2, (n01.x + n11.x) / 2, (n01.y + n11.y) / 2, this.rand() * 0.06);
       }
     }
     m.gridShards = shards;
@@ -339,28 +352,36 @@ export class CollapseEngine {
   private drawShards(m: Matrix) {
     const ctx = this.ctx;
     ctx.lineWidth = 1;
-    // 灰白碎段
-    ctx.strokeStyle = 'rgba(206,213,224,0.5)';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // 灰白主体：与静态网格同色同透明（rgba(214,220,230,0.18)）→ 进入碎裂时颜色连续，无突跳
+    ctx.strokeStyle = 'rgba(214,220,230,0.18)';
+    ctx.beginPath();
+    for (const s of m.gridShards) this.traceShard(ctx, s);
+    ctx.stroke();
+    // 暗红余光：仅在「已开始下落/断裂」的碎段，低透明、随运动从上往下自然浮现（非状态硬切色）
+    ctx.strokeStyle = 'rgba(156,46,42,0.12)';
     ctx.beginPath();
     for (const s of m.gridShards) {
-      if (s.red >= 0.22) continue;
-      const c = Math.cos(s.angle) * s.half;
-      const sn = Math.sin(s.angle) * s.half;
-      ctx.moveTo(s.cx - c, s.cy - sn);
-      ctx.lineTo(s.cx + c, s.cy + sn);
+      if (s.state === 'intact' || s.red < 0.16) continue;
+      this.traceShard(ctx, s);
     }
     ctx.stroke();
-    // 暗红激活碎段
-    ctx.strokeStyle = 'rgba(150,26,28,0.52)';
-    ctx.beginPath();
-    for (const s of m.gridShards) {
-      if (s.red < 0.22) continue;
-      const c = Math.cos(s.angle) * s.half;
-      const sn = Math.sin(s.angle) * s.half;
-      ctx.moveTo(s.cx - c, s.cy - sn);
-      ctx.lineTo(s.cx + c, s.cy + sn);
-    }
-    ctx.stroke();
+  }
+
+  // 轻微弯折的碎段（A → 中点偏移 → B），代替死直线
+  private traceShard(ctx: CanvasRenderingContext2D, s: GridShard) {
+    const cos = Math.cos(s.angle);
+    const sin = Math.sin(s.angle);
+    const ax = s.cx - cos * s.half;
+    const ay = s.cy - sin * s.half;
+    const bx = s.cx + cos * s.half;
+    const by = s.cy + sin * s.half;
+    const mx = s.cx - sin * s.bend;
+    const my = s.cy + cos * s.bend;
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(mx, my);
+    ctx.lineTo(bx, by);
   }
 
   private drawScanline(m: Matrix) {

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from './features/home';
 import IntroOverlay from './features/intro/IntroOverlay';
@@ -62,6 +62,27 @@ function HomeRoute() {
                 A quiet system for the work behind the experiments.
               </h2>
             </div>
+
+            {/* 当前活跃 LAB 模块入口：TEXT COLLAPSE（黑底细线 / 红色激活 / 冷感，非普通按钮） */}
+            <Link
+              to="/lab/text-collapse"
+              className="group relative block overflow-hidden border border-white/10 bg-[#080808] p-7 transition-colors duration-300 hover:border-lab-red/50 hover:bg-[#0b0b0b]"
+            >
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-lab-muted">
+                <span className="inline-flex items-center gap-2 text-lab-red">
+                  <span className="h-1.5 w-1.5 rounded-full bg-lab-red" />
+                  Active Module
+                </span>
+                <span className="text-white/40 transition-colors duration-300 group-hover:text-lab-red">Enter →</span>
+              </div>
+              <h3 className="mt-7 text-2xl font-semibold uppercase tracking-[0.18em] text-white sm:text-3xl">
+                Text Collapse
+              </h3>
+              <p className="mt-2 text-xs tracking-[0.04em] text-white/45">
+                Chinese character grid collapse experiment
+              </p>
+              <span className="pointer-events-none absolute -bottom-px left-0 h-px w-0 bg-lab-red transition-all duration-500 group-hover:w-full" />
+            </Link>
 
             <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-5">
               {sections.map((section, index) => (

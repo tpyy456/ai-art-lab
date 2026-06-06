@@ -55,6 +55,7 @@ export type GridShard = {
   cy: number;
   angle: number; // 当前角度
   half: number; // 半长
+  bend: number; // 中点垂直偏移（断裂弯折 jitter，让碎段不笔直）
   vx: number;
   vy: number;
   vrot: number;
