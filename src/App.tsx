@@ -6,6 +6,7 @@ import IntroOverlay from './features/intro/IntroOverlay';
 import LabLayout from './features/lab/LabLayout';
 
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
+const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
 const sections = ['About', 'Tools Lab', 'Projects', 'Resume', 'Contact'];
 
@@ -104,6 +105,16 @@ function App() {
             <LabLayout title="SKELETON LAB">
               <Suspense fallback={<LabFallback />}>
                 <SkeletonLab />
+              </Suspense>
+            </LabLayout>
+          }
+        />
+        <Route
+          path="/lab/text-collapse"
+          element={
+            <LabLayout title="TEXT COLLAPSE">
+              <Suspense fallback={<LabFallback />}>
+                <TextCollapseLab />
               </Suspense>
             </LabLayout>
           }
