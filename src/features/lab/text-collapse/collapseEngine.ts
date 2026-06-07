@@ -1,24 +1,69 @@
 import { buildMatrix, createRandom, RES, TIMING } from './matrix';
-import type { AnimationPhase, EngineOptions, Fragment, GridShard, Matrix } from './types';
+import type { AnimationPhase, Cell, EngineOptions, FlowerPart, Fragment, GridShard, Matrix } from './types';
 
 const MIN_SIZE = 120;
 
 // 伪物理参数（dt 毫秒；v 为 px/ms；G 为 px/ms^2）
 const PHYS = {
   gravity: 0.0016,
-  stickDamp: 0.14, // 卡住瞬间纵向速度骤降
-  stickCreep: 0.0004, // 卡住时缓慢蠕动
-  tearBoost: 0.05, // 挣脱后纵向突进
-  tearSpread: 0.05, // 挣脱后横向撕开
-  tearSpin: 0.006, // 挣脱后旋转
-  initSpread: 0.012, // 释放瞬间初速差异
+  stickDamp: 0.14,
+  stickCreep: 0.0004,
+  tearBoost: 0.05,
+  tearSpread: 0.05,
+  tearSpin: 0.006,
+  initSpread: 0.012,
   initSpin: 0.0035,
-  gridGravity: 0.0014, // 网格碎块重力
-  gridRowStep: 115, // 网格断裂从上往下传导
+  gridGravity: 0.0014,
+  gridRowStep: 115,
   gridNoise: 240,
   gridSpin: 0.0045,
   gridDrift: 0.02,
 };
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
+const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+const frac = (x: number) => x - Math.floor(x);
+function angleDiff(a: number, b: number) {
+  let d = (b - a) % (Math.PI * 2);
+  if (d > Math.PI) d -= Math.PI * 2;
+  if (d < -Math.PI) d += Math.PI * 2;
+  return d;
+}
+
+// 重花着色：废墟灰白/暗红 →(0~0.45 锈红橙) →(0.45~1 目标色)。即「废墟的红转化为生命的黄」。
+function reformColor(part: FlowerPart, prog: number, restRed: number): [number, number, number] {
+  const sr = 226 - 26 * restRed;
+  const sg = 228 - 150 * restRed;
+  const sb = 232 - 150 * restRed; // 起色（带暗红余温）
+  const mr = 192;
+  const mg = 80;
+  const mb = 38; // 中转：锈红橙
+  let er: number;
+  let eg: number;
+  let eb: number;
+  if (part === 'core') {
+    er = 54;
+    eg = 38;
+    eb = 26;
+  } // 花心：炭褐黑
+  else if (part === 'stem') {
+    er = 158;
+    eg = 116;
+    eb = 50;
+  } // 茎：暗金锈
+  else {
+    er = 232;
+    eg = 178;
+    eb = 54;
+  } // 花瓣：金黄
+  if (prog < 0.45) {
+    const t = prog / 0.45;
+    return [lerp(sr, mr, t), lerp(sg, mg, t), lerp(sb, mb, t)];
+  }
+  const t = (prog - 0.45) / 0.55;
+  return [lerp(mr, er, t), lerp(mg, eg, t), lerp(mb, eb, t)];
+}
 
 export class CollapseEngine {
   private canvas: HTMLCanvasElement;
@@ -41,6 +86,9 @@ export class CollapseEngine {
   private rafId = 0;
   private disposed = false;
 
+  private flowerCx = 0;
+  private flowerCy = 0;
+
   private resizeObserver: ResizeObserver;
   private rand = createRandom(77123);
 
@@ -62,6 +110,15 @@ export class CollapseEngine {
   start() {
     if (this.phase !== 'idle') return;
     this.setPhase('activating');
+  }
+
+  // REFORM：仅废墟态可触发，把残骸牵引重塑成向日葵（不重置）
+  reform() {
+    if (this.phase !== 'collapsed') return;
+    const m = this.matrix;
+    if (!m) return;
+    this.buildFlowerTargets(m);
+    this.setPhase('reforming');
   }
 
   reset() {
@@ -142,6 +199,13 @@ export class CollapseEngine {
         this.updateShards(dt, m);
         if (this.phaseElapsed >= TIMING.gridFalling) this.setPhase('collapsed');
         break;
+      case 'reforming':
+        this.updateReform(m);
+        if (this.phaseElapsed >= TIMING.reforming) this.setPhase('reformed');
+        break;
+      case 'reformed':
+        this.updateReform(m); // 保持到位（progress 已 1），呼吸在绘制层
+        break;
       default:
         break;
     }
@@ -169,18 +233,17 @@ export class CollapseEngine {
         if (t < f.releaseTime) continue;
         if (f.state === 'placed') {
           f.state = 'falling';
-          f.vx += (this.rand() - 0.5) * PHYS.initSpread; // 释放瞬间初速差异（错开）
+          f.vx += (this.rand() - 0.5) * PHYS.initSpread;
           f.vrot += (this.rand() - 0.5) * PHYS.initSpin;
         }
 
-        f.vy += PHYS.gravity * f.gravityScale * dt; // 重量/惯性差异
+        f.vy += PHYS.gravity * f.gravityScale * dt;
         f.dy += f.vy * dt;
         f.dx += f.vx * dt;
         f.rot += f.vrot * dt;
 
         const worldY = cell.y + f.pivotY + f.dy;
 
-        // 落地成 debris（保留，不清空）
         const restLine = m.floorY + (this.rand() - 0.5) * cell.size * 0.5;
         if (worldY >= restLine) {
           f.dy = restLine - (cell.y + f.pivotY);
@@ -192,7 +255,6 @@ export class CollapseEngine {
           continue;
         }
 
-        // 格线摩擦卡顿（多次、差异化）
         if (f.state !== 'stuck' && f.sticksLeft > 0 && worldY >= f.nextStickY) {
           f.state = 'stuck';
           f.vy *= PHYS.stickDamp;
@@ -205,7 +267,7 @@ export class CollapseEngine {
           if (f.strain >= f.breakFree) {
             f.state = 'falling';
             f.vy += PHYS.tearBoost;
-            f.vx += (this.rand() - 0.5) * PHYS.tearSpread; // 撕开横向
+            f.vx += (this.rand() - 0.5) * PHYS.tearSpread;
             f.vrot += (this.rand() - 0.5) * PHYS.tearSpin;
             f.nextStickY += cell.size;
             f.sticksLeft -= 1;
@@ -223,10 +285,8 @@ export class CollapseEngine {
     return true;
   }
 
-  // 进入 gridFalling 时把田字格线网离散成可下落的线段碎块
   private buildGridShards(m: Matrix) {
     const shards: GridShard[] = [];
-    // 把一条网格线切成 2 段不等长碎段（中间留断口），各段独立角度/弯折/速度 → 不再是死直线
     const pushSeg = (ax: number, ay: number, bx: number, by: number, baseRed: number) => {
       const mid = 0.5 + (this.rand() - 0.5) * 0.24;
       const gap = 0.05 + this.rand() * 0.05;
@@ -249,7 +309,7 @@ export class CollapseEngine {
           cy,
           angle: Math.atan2(sby - say, sbx - sax),
           half: len / 2,
-          bend: (this.rand() - 0.5) * len * 0.22, // 断裂弯折
+          bend: (this.rand() - 0.5) * len * 0.22,
           vx: (this.rand() - 0.5) * PHYS.gridDrift,
           vy: 0,
           vrot: (this.rand() - 0.5) * PHYS.gridSpin,
@@ -257,6 +317,18 @@ export class CollapseEngine {
           fallDelay: Math.max(0, row * PHYS.gridRowStep + this.rand() * PHYS.gridNoise),
           red: baseRed * (0.6 + this.rand() * 0.7),
           row,
+          reformPart: null,
+          reformDelay: 0,
+          reformDur: 0,
+          startCx: 0,
+          startCy: 0,
+          startAngle: 0,
+          startHalf: 0,
+          targetCx: 0,
+          targetCy: 0,
+          targetAngle: 0,
+          targetHalf: 0,
+          reformProgress: 0,
         });
       }
     };
@@ -282,7 +354,7 @@ export class CollapseEngine {
     const t = this.phaseElapsed;
     for (const s of m.gridShards) {
       if (s.state === 'rested') continue;
-      if (t < s.fallDelay) continue; // 失张/断裂前保持原位
+      if (t < s.fallDelay) continue;
       if (s.state === 'intact') s.state = 'falling';
       s.vy += PHYS.gridGravity * dt;
       s.cy += s.vy * dt;
@@ -298,6 +370,136 @@ export class CollapseEngine {
     }
   }
 
+  // 进入 reforming：为每个废墟碎片分配向日葵目标（茎 / 花心 / 花瓣），起点 = 当前废墟位置。
+  private buildFlowerTargets(m: Matrix) {
+    const W = this.cssW;
+    const H = this.cssH;
+    const fcx = W * 0.5;
+    const fcy = H * 0.4;
+    this.flowerCx = fcx;
+    this.flowerCy = fcy;
+    const minSide = Math.min(W, H);
+    const coreR = minSide * 0.075;
+    const petalInner = coreR * 0.92;
+    const petalOuter = coreR + minSide * 0.135;
+    const petalCount = 26;
+    const stemTopY = fcy + coreR;
+    const stemBotY = m.floorY + m.cellSize * 0.3;
+    const rand = createRandom((m.flowerSeed | 0) + 1);
+
+    const frags: { f: Fragment; cell: Cell }[] = [];
+    for (const cell of m.cells) {
+      for (const f of cell.fragments) {
+        f.startX = cell.x + f.pivotX + f.dx;
+        f.startY = cell.y + f.pivotY + f.dy;
+        frags.push({ f, cell });
+      }
+    }
+    const shards = m.gridShards;
+    for (const s of shards) {
+      s.startCx = s.cx;
+      s.startCy = s.cy;
+      s.startAngle = s.angle;
+      s.startHalf = s.half;
+    }
+
+    const shuffle = <T,>(arr: T[]) => {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+    };
+    shuffle(frags);
+    shuffle(shards);
+
+    // 茎：部分 shards 竖直排列（底先长，从下往上汇聚）
+    const stemCount = Math.min(shards.length, 30);
+    for (let i = 0; i < stemCount; i++) {
+      const s = shards[i];
+      const tt = stemCount > 1 ? i / (stemCount - 1) : 0;
+      s.reformPart = 'stem';
+      s.targetCx = fcx + Math.sin(tt * Math.PI * 1.5) * coreR * 0.3;
+      s.targetCy = stemBotY + (stemTopY - stemBotY) * tt;
+      s.targetAngle = Math.PI / 2 + (rand() - 0.5) * 0.5;
+      s.targetHalf = m.cellSize * (0.2 - tt * 0.06);
+      s.reformDelay = (1 - tt) * 220 + rand() * 120;
+      s.reformDur = 650 + rand() * 300;
+      s.reformProgress = 0;
+    }
+    // 花瓣脊：剩余 shards 放射
+    for (let i = stemCount; i < shards.length; i++) {
+      const s = shards[i];
+      const petal = (i - stemCount) % petalCount;
+      const a = (petal / petalCount) * Math.PI * 2 + (rand() - 0.5) * 0.08;
+      const rr = petalInner + (petalOuter - petalInner) * (0.35 + rand() * 0.6);
+      s.reformPart = 'petal';
+      s.targetCx = fcx + Math.cos(a) * rr;
+      s.targetCy = fcy + Math.sin(a) * rr;
+      s.targetAngle = a + (rand() - 0.5) * 0.6;
+      s.targetHalf = m.cellSize * (0.09 + rand() * 0.07);
+      s.reformDelay = 950 + rand() * 750;
+      s.reformDur = 600 + rand() * 380;
+      s.reformProgress = 0;
+    }
+
+    // 花心：部分 fragments 密集盘
+    const coreCount = Math.min(frags.length, 120);
+    for (let i = 0; i < coreCount; i++) {
+      const { f } = frags[i];
+      const a = rand() * Math.PI * 2;
+      const rr = Math.sqrt(rand()) * coreR;
+      f.reformPart = 'core';
+      f.targetX = fcx + Math.cos(a) * rr;
+      f.targetY = fcy + Math.sin(a) * rr;
+      f.reformDelay = 360 + rand() * 360;
+      f.reformDur = 620 + rand() * 300;
+      f.reformProgress = 0;
+    }
+    // 花瓣面：剩余 fragments（由内往外、最后到位）
+    for (let i = coreCount; i < frags.length; i++) {
+      const { f } = frags[i];
+      const petal = (i - coreCount) % petalCount;
+      const along = rand();
+      const a = (petal / petalCount) * Math.PI * 2 + (rand() - 0.5) * 0.14;
+      const rr = petalInner + (petalOuter - petalInner) * (0.1 + along * 0.9);
+      const perp = a + Math.PI / 2;
+      const widAmt = (rand() - 0.5) * coreR * 0.55 * (1 - along * 0.7);
+      f.reformPart = 'petal';
+      f.targetX = fcx + Math.cos(a) * rr + Math.cos(perp) * widAmt;
+      f.targetY = fcy + Math.sin(a) * rr + Math.sin(perp) * widAmt;
+      f.reformDelay = 950 + along * 650 + rand() * 220;
+      f.reformDur = 600 + rand() * 350;
+      f.reformProgress = 0;
+    }
+  }
+
+  private updateReform(m: Matrix) {
+    const t = this.phaseElapsed;
+    for (const cell of m.cells) {
+      for (const f of cell.fragments) {
+        if (!f.reformPart) continue;
+        const p = easeInOut(clamp01((t - f.reformDelay) / Math.max(1, f.reformDur)));
+        f.reformProgress = p;
+        const ax = lerp(f.startX, f.targetX, p);
+        const ay = lerp(f.startY, f.targetY, p);
+        f.dx = ax - (cell.x + f.pivotX);
+        f.dy = ay - (cell.y + f.pivotY);
+        f.rot *= 1 - p * 0.015; // 缓慢端正一点，仍保留碎裂拼合感
+      }
+    }
+    for (const s of m.gridShards) {
+      if (!s.reformPart) continue;
+      const p = easeInOut(clamp01((t - s.reformDelay) / Math.max(1, s.reformDur)));
+      s.reformProgress = p;
+      s.cx = lerp(s.startCx, s.targetCx, p);
+      s.cy = lerp(s.startCy, s.targetCy, p);
+      s.angle = s.startAngle + angleDiff(s.startAngle, s.targetAngle) * p;
+      s.half = lerp(s.startHalf, s.targetHalf, p);
+    }
+  }
+
   // ---- 绘制 ----
   private draw() {
     const m = this.matrix;
@@ -306,6 +508,15 @@ export class CollapseEngine {
     ctx.fillStyle = '#040405';
     ctx.fillRect(0, 0, this.cssW, this.cssH);
     if (!m) return;
+
+    const reform = this.phase === 'reforming' || this.phase === 'reformed';
+    if (reform) {
+      this.drawResidueFloor(m); // 底部废墟余温仍在
+      this.drawShards(m);
+      this.drawFragments(m);
+      this.drawLightBeam(m);
+      return;
+    }
 
     const shattered = this.phase === 'gridFalling' || this.phase === 'collapsed';
     if (shattered) this.drawShards(m);
@@ -354,12 +565,25 @@ export class CollapseEngine {
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    // 灰白主体：与静态网格同色同透明（rgba(214,220,230,0.18)）→ 进入碎裂时颜色连续，无突跳
+
+    if (this.phase === 'reforming' || this.phase === 'reformed') {
+      const breath = this.phase === 'reformed' ? 0.92 + Math.sin(this.elapsed * 0.0025) * 0.08 : 1;
+      for (const s of m.gridShards) {
+        if (!s.reformPart) continue;
+        const [r, g, b] = reformColor(s.reformPart, s.reformProgress, s.red);
+        ctx.strokeStyle = `rgba(${r | 0},${g | 0},${b | 0},${(0.55 * breath).toFixed(3)})`;
+        ctx.beginPath();
+        this.traceShard(ctx, s);
+        ctx.stroke();
+      }
+      return;
+    }
+
+    // 废墟态：灰白主体（与静态网格同色，无突跳）+ 暗红余光
     ctx.strokeStyle = 'rgba(214,220,230,0.18)';
     ctx.beginPath();
     for (const s of m.gridShards) this.traceShard(ctx, s);
     ctx.stroke();
-    // 暗红余光：仅在「已开始下落/断裂」的碎段，低透明、随运动从上往下自然浮现（非状态硬切色）
     ctx.strokeStyle = 'rgba(156,46,42,0.12)';
     ctx.beginPath();
     for (const s of m.gridShards) {
@@ -369,7 +593,6 @@ export class CollapseEngine {
     ctx.stroke();
   }
 
-  // 轻微弯折的碎段（A → 中点偏移 → B），代替死直线
   private traceShard(ctx: CanvasRenderingContext2D, s: GridShard) {
     const cos = Math.cos(s.angle);
     const sin = Math.sin(s.angle);
@@ -425,6 +648,12 @@ export class CollapseEngine {
   }
 
   private applyFragmentStyle(f: Fragment) {
+    if ((this.phase === 'reforming' || this.phase === 'reformed') && f.reformPart) {
+      const [r, g, b] = reformColor(f.reformPart, f.reformProgress, f.restRed);
+      const breath = this.phase === 'reformed' ? 0.9 + Math.sin(this.elapsed * 0.0025) * 0.1 : 1;
+      this.ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},${(0.86 * breath).toFixed(3)})`;
+      return;
+    }
     let redness = 0;
     if (f.state === 'stuck') redness = Math.min(1, f.strain / f.breakFree) * 0.85;
     else if (f.state === 'rested') redness = f.restRed;
@@ -435,8 +664,56 @@ export class CollapseEngine {
     this.ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
   }
 
+  // 暖白光束：仅 reformed 后 ~600ms 才从上方降临（见证，不抢先）
+  private drawLightBeam(m: Matrix) {
+    void m;
+    if (this.phase !== 'reformed') return;
+    const inT = clamp01((this.phaseElapsed - 600) / 1300);
+    if (inT <= 0.01) return;
+    const ctx = this.ctx;
+    const fcx = this.flowerCx;
+    const fcy = this.flowerCy;
+    const minSide = Math.min(this.cssW, this.cssH);
+    const topW = minSide * 0.05;
+    const botW = minSide * 0.32;
+    const beamBot = fcy + minSide * 0.2;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const grad = ctx.createLinearGradient(0, 0, 0, beamBot);
+    grad.addColorStop(0, `rgba(255,248,228,${(0.17 * inT).toFixed(3)})`);
+    grad.addColorStop(0.6, `rgba(255,240,210,${(0.09 * inT).toFixed(3)})`);
+    grad.addColorStop(1, 'rgba(255,240,210,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(fcx - topW, 0);
+    ctx.lineTo(fcx + topW, 0);
+    ctx.lineTo(fcx + botW, beamBot);
+    ctx.lineTo(fcx - botW, beamBot);
+    ctx.closePath();
+    ctx.fill();
+
+    // 丁达尔尘埃：光柱内缓慢下飘的暖白微尘
+    ctx.fillStyle = `rgba(255,246,224,${(0.5 * inT).toFixed(3)})`;
+    for (let i = 0; i < 26; i++) {
+      const seed = i * 12.9898;
+      const fx = fcx + (frac(Math.sin(seed)) * 2 - 1) * botW * 0.8;
+      const speed = 0.4 + frac(Math.sin(seed * 2.1)) * 0.6;
+      const fy = (frac(Math.sin(seed * 1.7)) * beamBot + this.elapsed * 0.018 * speed) % beamBot;
+      const sz = 0.6 + frac(Math.sin(seed * 3.3)) * 1.0;
+      ctx.beginPath();
+      ctx.arc(fx, fy, sz, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   private drawResidue(m: Matrix) {
     if (this.phase !== 'settling' && this.phase !== 'gridFalling' && this.phase !== 'collapsed') return;
+    this.drawResidueFloor(m);
+  }
+
+  private drawResidueFloor(m: Matrix) {
     const ctx = this.ctx;
     const top = m.floorY - m.cellSize * 0.5;
     const grad = ctx.createLinearGradient(0, top, 0, this.cssH);
@@ -445,9 +722,4 @@ export class CollapseEngine {
     ctx.fillStyle = grad;
     ctx.fillRect(0, top, this.cssW, this.cssH - top);
   }
-
-  // —— 预留：后续「从废墟重塑成花」——
-  // 数据已就绪：rested 文字碎片（cells[].fragments, 含 dx/dy/rot/restRed）
-  // + rested 网格碎块（matrix.gridShards, 含 cx/cy/angle）+ matrix.flowerSeed + matrix.reformTargets。
-  // 下一阶段会读取这些 debris 并补间到 reformTargets（花形）。本轮不实现。
 }

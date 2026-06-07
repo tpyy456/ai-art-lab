@@ -20,6 +20,7 @@ export const TIMING = {
   collapseTimeout: 5200, // 安全兜底：超时强制进入 settling
   settling: 900,
   gridFalling: 2200,
+  reforming: 2800, // 牵引 → 聚茎 → 聚花心 → 展花瓣
 };
 
 // 释放时机：行主导（保留从上到下），但叠加大量错位/噪声让它不机械
@@ -144,6 +145,14 @@ function buildFragments(
       gravityScale: 0.82 + random() * 0.5, // 重量差异
       sticksLeft: 1 + Math.floor(random() * 3), // 卡顿次数差异
       restRed: 0,
+      reformPart: null,
+      reformDelay: 0,
+      reformDur: 0,
+      startX: 0,
+      startY: 0,
+      targetX: 0,
+      targetY: 0,
+      reformProgress: 0,
     });
   }
   return fragments;

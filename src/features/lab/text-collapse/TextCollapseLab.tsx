@@ -22,6 +22,7 @@ export default function TextCollapseLab() {
   }, []);
 
   const canCollapse = phase === 'idle';
+  const canReform = phase === 'collapsed';
   const canReset = phase !== 'idle';
 
   return (
@@ -50,6 +51,18 @@ export default function TextCollapseLab() {
           }`}
         >
           COLLAPSE
+        </button>
+        <button
+          type="button"
+          onClick={() => engineRef.current?.reform()}
+          disabled={!canReform}
+          className={`inline-flex h-11 min-w-32 items-center justify-center gap-2 border px-6 text-xs font-medium uppercase tracking-[0.24em] transition-all duration-300 ${
+            canReform
+              ? 'border-amber-500/60 bg-amber-500/10 text-white hover:border-amber-400 hover:bg-amber-500/20 hover:shadow-[0_0_30px_rgba(217,160,40,0.25)]'
+              : 'cursor-not-allowed border-white/10 text-white/25'
+          }`}
+        >
+          REFORM
         </button>
         <button
           type="button"

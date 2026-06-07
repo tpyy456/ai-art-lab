@@ -8,12 +8,15 @@ export type AnimationPhase =
   | 'collapsing' // 逐层坠落 + 解体
   | 'settling' // 残片落定
   | 'gridFalling' // 田字格碎成线段掉落
-  | 'collapsed'; // 最终废墟（保留碎片，不清空）
+  | 'collapsed' // 最终废墟（保留碎片，不清空）
+  | 'reforming' // 废墟被牵引、上升、聚合成花（红→黄）
+  | 'reformed'; // 废墟向日葵成形 + 暖白光束降临
 
 export type PixelCell = { gx: number; gy: number };
 
 export type FragmentState = 'placed' | 'stuck' | 'falling' | 'rested';
 export type DebrisKind = 'glyph' | 'grid';
+export type FlowerPart = 'stem' | 'core' | 'petal'; // 重花时碎片归属：茎 / 花心 / 花瓣
 
 // 一个字按田字格切成的四象限碎片之一（0=左上 1=右上 2=左下 3=右下）
 export type Fragment = {
@@ -36,6 +39,15 @@ export type Fragment = {
   gravityScale: number; // 每碎片重量/惯性差异
   sticksLeft: number; // 还能被格线卡几次（差异化）
   restRed: number; // 落地时残留的红度（debris 着色 + 预留给花）
+  // —— REFORM（废墟重花）运行时 ——
+  reformPart: FlowerPart | null;
+  reformDelay: number;
+  reformDur: number;
+  startX: number; // reform 起点锚点（绝对像素）
+  startY: number;
+  targetX: number; // reform 终点锚点（绝对像素）
+  targetY: number;
+  reformProgress: number; // 0..1
 };
 
 export type Cell = {
@@ -63,6 +75,19 @@ export type GridShard = {
   fallDelay: number; // 失张/断裂下落延迟（从上往下传导）
   red: number; // 暗红激活量 0..1
   row: number;
+  // —— REFORM（废墟重花）运行时 ——
+  reformPart: FlowerPart | null;
+  reformDelay: number;
+  reformDur: number;
+  startCx: number;
+  startCy: number;
+  startAngle: number;
+  startHalf: number;
+  targetCx: number;
+  targetCy: number;
+  targetAngle: number;
+  targetHalf: number;
+  reformProgress: number; // 0..1
 };
 
 // 静态线网节点（idle/collapsing 阶段画规整田字格用；gridFalling 后交给 GridShard）
