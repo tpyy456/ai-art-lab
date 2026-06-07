@@ -88,6 +88,8 @@ export class CollapseEngine {
 
   private flowerCx = 0;
   private flowerCy = 0;
+  private reformStart = 0; // reform 点击的绝对时间；reforming+reformed 连续，不随阶段重置
+  private reformClock = 0;
 
   private resizeObserver: ResizeObserver;
   private rand = createRandom(77123);
@@ -118,6 +120,8 @@ export class CollapseEngine {
     const m = this.matrix;
     if (!m) return;
     this.buildFlowerTargets(m);
+    this.reformStart = performance.now();
+    this.reformClock = 0;
     this.setPhase('reforming');
   }
 
@@ -172,6 +176,9 @@ export class CollapseEngine {
     this.phaseElapsed = time - this.phaseStart;
     if (this.phase === 'collapsing' || this.phase === 'settling') {
       this.collapseClock = time - this.collapseStart;
+    }
+    if (this.phase === 'reforming' || this.phase === 'reformed') {
+      this.reformClock = time - this.reformStart; // 连续时钟（跨阶段），驱动重塑补间
     }
     this.update(dt);
     this.draw();
@@ -476,7 +483,8 @@ export class CollapseEngine {
   }
 
   private updateReform(m: Matrix) {
-    const t = this.phaseElapsed;
+    // 用连续的 reformClock（不随 reforming→reformed 切换重置），避免切换瞬间 progress 跳回 0 → 闪烁
+    const t = this.reformClock;
     for (const cell of m.cells) {
       for (const f of cell.fragments) {
         if (!f.reformPart) continue;
@@ -567,7 +575,7 @@ export class CollapseEngine {
     ctx.lineJoin = 'round';
 
     if (this.phase === 'reforming' || this.phase === 'reformed') {
-      const breath = this.phase === 'reformed' ? 0.92 + Math.sin(this.elapsed * 0.0025) * 0.08 : 1;
+      const breath = this.flowerBreath();
       for (const s of m.gridShards) {
         if (!s.reformPart) continue;
         const [r, g, b] = reformColor(s.reformPart, s.reformProgress, s.red);
@@ -650,7 +658,7 @@ export class CollapseEngine {
   private applyFragmentStyle(f: Fragment) {
     if ((this.phase === 'reforming' || this.phase === 'reformed') && f.reformPart) {
       const [r, g, b] = reformColor(f.reformPart, f.reformProgress, f.restRed);
-      const breath = this.phase === 'reformed' ? 0.9 + Math.sin(this.elapsed * 0.0025) * 0.1 : 1;
+      const breath = this.flowerBreath();
       this.ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},${(0.86 * breath).toFixed(3)})`;
       return;
     }
@@ -662,6 +670,14 @@ export class CollapseEngine {
     const g = Math.round(228 + (40 - 228) * redness);
     const b = Math.round(232 + (38 - 232) * redness);
     this.ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  // 花呼吸：呼吸幅度在 reformed 后从 0 平滑渐入，避免 reforming→reformed 切换瞬间 alpha 跳变。
+  // reforming（含末帧）返回 1；reformed 第一帧幅度仍为 0 → 与上一帧连续。
+  private flowerBreath(): number {
+    if (this.phase !== 'reformed') return 1;
+    const amp = Math.min(0.09, (this.phaseElapsed / 2200) * 0.09);
+    return 1 - amp + (Math.sin(this.elapsed * 0.0022) * 0.5 + 0.5) * amp;
   }
 
   // 暖白光束：仅 reformed 后 ~600ms 才从上方降临（见证，不抢先）
