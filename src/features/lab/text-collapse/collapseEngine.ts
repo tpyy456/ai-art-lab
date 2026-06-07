@@ -174,7 +174,7 @@ export class CollapseEngine {
     this.lastTime = time;
     this.elapsed = time - this.startTime;
     this.phaseElapsed = time - this.phaseStart;
-    if (this.phase === 'collapsing' || this.phase === 'settling') {
+    if (this.phase === 'collapsing' || this.phase === 'settling' || this.phase === 'gridFalling' || this.phase === 'collapsed') {
       this.collapseClock = time - this.collapseStart;
     }
     if (this.phase === 'reforming' || this.phase === 'reformed') {
@@ -194,17 +194,21 @@ export class CollapseEngine {
         if (this.phaseElapsed >= TIMING.activating) this.setPhase('collapsing');
         break;
       case 'collapsing':
+        if (m.gridShards.length === 0) this.buildGridShards(m);
         this.updateFragments(dt, m);
+        this.updateShards(dt, m);
         if (this.allRested(m) || this.collapseClock >= TIMING.collapseTimeout) this.setPhase('settling');
         break;
       case 'settling':
         this.updateFragments(dt, m);
+        if (m.gridShards.length === 0) this.buildGridShards(m);
+        this.updateShards(dt, m);
         if (this.phaseElapsed >= TIMING.settling) this.setPhase('gridFalling');
         break;
       case 'gridFalling':
         if (m.gridShards.length === 0) this.buildGridShards(m);
         this.updateShards(dt, m);
-        if (this.phaseElapsed >= TIMING.gridFalling) this.setPhase('collapsed');
+        if (this.allShardsRested(m) || this.phaseElapsed >= TIMING.gridFalling) this.setPhase('collapsed');
         break;
       case 'reforming':
         this.updateReform(m);
@@ -267,6 +271,7 @@ export class CollapseEngine {
           f.vy *= PHYS.stickDamp;
           f.vrot *= 0.5;
           f.strain = 0;
+          this.stressGridNear(m, cell.x + f.pivotX + f.dx, worldY, 0.68);
         }
         if (f.state === 'stuck') {
           f.strain += dt;
@@ -279,8 +284,31 @@ export class CollapseEngine {
             f.nextStickY += cell.size;
             f.sticksLeft -= 1;
             f.strain = 0;
+            this.stressGridNear(m, cell.x + f.pivotX + f.dx, worldY, 1);
           }
         }
+      }
+    }
+  }
+
+  private stressGridNear(m: Matrix, x: number, y: number, intensity: number) {
+    if (m.gridShards.length === 0) return;
+    const radius = m.cellSize * 1.25;
+    for (const s of m.gridShards) {
+      if (s.state === 'rested') continue;
+      const dx = s.cx - x;
+      const dy = s.cy - y;
+      const distance = Math.hypot(dx, dy);
+      if (distance > radius) continue;
+      const hit = (1 - distance / radius) * intensity;
+      s.red = Math.min(0.72, s.red + hit * 0.2);
+      s.bend += (this.rand() - 0.5) * m.cellSize * 0.11 * hit;
+      s.fallDelay = Math.min(s.fallDelay, this.collapseClock + 160 + this.rand() * 260);
+      if (s.state === 'falling') {
+        const safe = Math.max(distance, 1);
+        s.vx += (dx / safe) * 0.012 * hit;
+        s.vy += 0.012 * hit;
+        s.vrot += (this.rand() - 0.5) * 0.0035 * hit;
       }
     }
   }
@@ -292,8 +320,27 @@ export class CollapseEngine {
     return true;
   }
 
+  private allShardsRested(m: Matrix): boolean {
+    return m.gridShards.length > 0 && m.gridShards.every((s) => s.state === 'rested');
+  }
+
   private buildGridShards(m: Matrix) {
     const shards: GridShard[] = [];
+    const rowReleaseTimes = Array.from({ length: m.rows }, (_, row) => row * 300);
+
+    for (let row = 0; row < m.rows; row++) {
+      let minRelease = Number.POSITIVE_INFINITY;
+      for (const cell of m.cells) {
+        if (cell.row !== row) continue;
+        for (const f of cell.fragments) {
+          minRelease = Math.min(minRelease, f.releaseTime);
+        }
+      }
+      if (Number.isFinite(minRelease)) {
+        rowReleaseTimes[row] = minRelease;
+      }
+    }
+
     const pushSeg = (ax: number, ay: number, bx: number, by: number, baseRed: number) => {
       const mid = 0.5 + (this.rand() - 0.5) * 0.24;
       const gap = 0.05 + this.rand() * 0.05;
@@ -310,18 +357,28 @@ export class CollapseEngine {
         if (len < 1.5) continue;
         const cx = (sax + sbx) / 2;
         const cy = (say + sby) / 2;
-        const row = Math.max(0, Math.min(m.rows, Math.round((cy - m.originY) / m.cellSize)));
+        const row = Math.max(0, Math.min(m.rows - 1, Math.floor((cy - m.originY) / m.cellSize)));
+        const rowRelease = rowReleaseTimes[row] ?? row * 300;
+        const loosenDelay = Math.max(0, rowRelease + this.rand() * 130 - 90);
+        const fallDelay = Math.max(0, rowRelease + 360 + row * 55 + this.rand() * 390);
+        const angle = Math.atan2(sby - say, sbx - sax);
+        const bend = (this.rand() - 0.5) * len * 0.22;
         shards.push({
+          baseCx: cx,
+          baseCy: cy,
+          baseAngle: angle,
+          baseBend: bend,
           cx,
           cy,
-          angle: Math.atan2(sby - say, sbx - sax),
+          angle,
           half: len / 2,
-          bend: (this.rand() - 0.5) * len * 0.22,
+          bend,
           vx: (this.rand() - 0.5) * PHYS.gridDrift,
           vy: 0,
           vrot: (this.rand() - 0.5) * PHYS.gridSpin,
           state: 'intact',
-          fallDelay: Math.max(0, row * PHYS.gridRowStep + this.rand() * PHYS.gridNoise),
+          loosenDelay,
+          fallDelay,
           red: baseRed * (0.6 + this.rand() * 0.7),
           row,
           reformPart: null,
@@ -358,11 +415,26 @@ export class CollapseEngine {
   }
 
   private updateShards(dt: number, m: Matrix) {
-    const t = this.phaseElapsed;
+    const t = this.collapseClock;
     for (const s of m.gridShards) {
       if (s.state === 'rested') continue;
-      if (t < s.fallDelay) continue;
-      if (s.state === 'intact') s.state = 'falling';
+      if (s.state === 'intact') {
+        const loosen = clamp01((t - s.loosenDelay) / 620);
+        if (loosen > 0) {
+          const wave = Math.sin(t * 0.012 + s.row * 1.7 + s.baseCx * 0.018);
+          const pull = easeInOut(loosen);
+          s.cx = s.baseCx + wave * (0.9 + s.red * 3.5) * pull;
+          s.cy = s.baseCy + pull * m.cellSize * 0.04 + Math.cos(t * 0.01 + s.baseCy * 0.012) * 0.7 * pull;
+          s.angle = s.baseAngle + wave * (0.012 + s.red * 0.025) * pull;
+          s.bend = s.baseBend + wave * m.cellSize * (0.018 + s.red * 0.035) * pull;
+          s.red = Math.min(0.42, s.red + 0.00008 * dt * pull);
+        }
+        if (t < s.fallDelay) continue;
+        s.state = 'falling';
+        s.vx += (this.rand() - 0.5) * PHYS.gridDrift * 1.8;
+        s.vy += 0.015 + s.row * 0.002;
+        s.vrot += (this.rand() - 0.5) * PHYS.gridSpin * 1.4;
+      }
       s.vy += PHYS.gridGravity * dt;
       s.cy += s.vy * dt;
       s.cx += s.vx * dt;
@@ -526,8 +598,10 @@ export class CollapseEngine {
       return;
     }
 
-    const shattered = this.phase === 'gridFalling' || this.phase === 'collapsed';
-    if (shattered) this.drawShards(m);
+    const linkedGrid =
+      m.gridShards.length > 0 &&
+      (this.phase === 'collapsing' || this.phase === 'settling' || this.phase === 'gridFalling' || this.phase === 'collapsed');
+    if (linkedGrid) this.drawShards(m);
     else this.drawStaticGrid(m);
     if (this.phase === 'idle') this.drawScanline(m);
     this.drawFragments(m);

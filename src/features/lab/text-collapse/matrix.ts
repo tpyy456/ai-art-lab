@@ -18,8 +18,8 @@ export const RES = 16; // 每字点阵分辨率（低分辨率 → 像素/字模
 export const TIMING = {
   activating: 600,
   collapseTimeout: 5200, // 安全兜底：超时强制进入 settling
-  settling: 900,
-  gridFalling: 2200,
+  settling: 520,
+  gridFalling: 1700,
   reforming: 2800, // 牵引 → 聚茎 → 聚花心 → 展花瓣
 };
 

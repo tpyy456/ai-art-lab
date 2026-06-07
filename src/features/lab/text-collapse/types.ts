@@ -63,6 +63,10 @@ export type Cell = {
 // 田字格碎块（gridFalling 时由线网离散而来，作为刚性线段下落、落地成 grid debris）
 export type GridShardState = 'intact' | 'falling' | 'rested';
 export type GridShard = {
+  baseCx: number;
+  baseCy: number;
+  baseAngle: number;
+  baseBend: number;
   cx: number; // 线段中心（运行时）
   cy: number;
   angle: number; // 当前角度
@@ -72,6 +76,7 @@ export type GridShard = {
   vy: number;
   vrot: number;
   state: GridShardState;
+  loosenDelay: number;
   fallDelay: number; // 失张/断裂下落延迟（从上往下传导）
   red: number; // 暗红激活量 0..1
   row: number;
