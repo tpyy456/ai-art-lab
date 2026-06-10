@@ -1,12 +1,12 @@
 import { Fragment } from 'react';
 
 const archiveItems = [
-  { id: '01', title: 'SCULPTURE WORK', desc: 'Physical materials & spatial forms' },
-  { id: '02', title: 'GRADUATION PROJECT', desc: 'Early conceptual explorations' },
-  { id: '03', title: 'EXHIBITION TRACE', desc: 'Gallery views & offline presence' },
-  { id: '04', title: 'PROCESS IMAGE', desc: 'Behind the scenes & raw drafts' },
-  { id: '05', title: 'LIFE FRAGMENT', desc: 'Unstructured daily records' },
-  { id: '06', title: 'STUDY DESK', desc: 'Where the digital shell is built' },
+  { id: '01' },
+  { id: '02' },
+  { id: '03' },
+  { id: '04' },
+  { id: '05' },
+  { id: '06' },
 ];
 
 function ArchiveCard({ item }: { item: typeof archiveItems[0] }) {
@@ -33,7 +33,8 @@ function ArchiveCard({ item }: { item: typeof archiveItems[0] }) {
       <div className="mt-4 px-1">
         <div className="flex items-center gap-3">
           <span className="text-[10px] font-mono text-lab-red/70">[ TRACE-{item.id} ]</span>
-          <h3 className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/80 transition-colors duration-300 group-hover:text-white">{item.title}</h3>
+          <span className="text-[12px] text-white/50 transition-colors duration-300 group-hover:text-white/80">/</span>
+          <h3 className="text-[11px] font-medium tracking-[0.15em] text-white/70 transition-colors duration-300 group-hover:text-white">生活片段</h3>
         </div>
       </div>
     </article>
