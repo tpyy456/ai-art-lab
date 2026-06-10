@@ -5,20 +5,20 @@ import InteractivePortrait from './components/InteractivePortrait';
 
 const textBlocks = [
   {
-    title: 'WHO I AM',
-    body: '艺术 / 雕塑背景，正在转向 AI 训练师、大模型评测与数据质量方向。',
+    title: 'IDENTITY / ORIGIN',
+    body: '艺术与雕塑背景出身。如今转向 AI 训练师、大模型评测与数据质量方向，试图在冰冷的计算中寻找属于人的判断力。',
   },
   {
     title: 'WHY AI',
-    body: '我关注的是如何把模糊的表达拆成规则，把模型输出转化为可判断、可验收、可优化的结果。',
+    body: '我关注的是如何把模糊的艺术表达拆解成精确的系统规则，把大语言模型的不可控输出，转化为可验收、可优化的结构化结果。',
   },
   {
     title: 'HOW I WORK',
-    body: '通过 Codex / Claude / Trae 等 AI Agent 协作，完成需求拆解、视觉审查、版本回退、构建验证和迭代优化。',
+    body: '与 Codex、Claude 等 AI Agent 结对协作。不再单打独斗，而是通过建立流程，完成从需求拆解、视觉审查到版本迭代的完整闭环。',
   },
   {
-    title: 'WHAT I CARE ABOUT',
-    body: '判断力、结构感、内容质量、审美控制、规则意识和复盘能力。',
+    title: 'CORE FOCUS',
+    body: '结构感、审美控制、规则边界，以及在快速迭代中保持极致复盘的能力。',
   },
 ];
 
@@ -32,32 +32,39 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_74%_24%,rgba(214,30,32,0.13),transparent_24rem),radial-gradient(circle_at_18%_68%,rgba(255,255,255,0.05),transparent_22rem)]" />
 
         <div className="relative z-10 mx-auto max-w-7xl">
-          <header className="flex items-center justify-between border-b border-white/10 pb-6">
+          <header className="flex items-center justify-between border-b border-white/10 pb-6 pt-2">
             <button
               type="button"
               onClick={() => navigateWithScan('/')}
-              className="group inline-flex h-11 items-center gap-3 border border-white/14 bg-white/[0.02] px-4 text-[10px] uppercase tracking-[0.24em] text-white/62 transition-colors duration-300 hover:border-lab-red/60 hover:text-white"
+              className="group inline-flex h-11 items-center gap-3 px-2 text-[10px] uppercase tracking-[0.24em] text-white/50 transition-colors duration-300 hover:text-white"
             >
               <ArrowLeft aria-hidden="true" className="h-4 w-4 text-lab-red transition-transform duration-300 group-hover:-translate-x-1" />
               BACK HOME
             </button>
-            <p className="hidden text-[10px] uppercase tracking-[0.32em] text-white/32 sm:block">ABOUT / PLACEHOLDER V1</p>
+            <p className="hidden text-[10px] uppercase tracking-[0.32em] text-white/30 sm:block">ABOUT / LIVING ARCHIVE</p>
           </header>
 
-          <div className="grid gap-10 py-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16 lg:py-20">
+          <div className="grid gap-16 py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24 items-center">
             <div className="flex flex-col justify-center">
-              <p className="text-[11px] uppercase tracking-[0.46em] text-lab-red">Human Layer</p>
-              <h1 className="mt-5 text-5xl font-semibold uppercase leading-none tracking-normal text-white sm:text-6xl lg:text-7xl">
+              <p className="text-[11px] font-mono uppercase tracking-[0.46em] text-lab-red">Human Layer</p>
+              <h1 className="mt-6 text-4xl font-medium uppercase leading-[1.05] tracking-wide text-white sm:text-5xl lg:text-[4rem]">
                 ABOUT
-                <span className="block text-white/42">TRACE</span>
+                <span className="block text-white/30">TRACE</span>
               </h1>
-              <div className="mt-8 h-px w-16 bg-lab-red" />
+              <div className="mt-8 h-px w-12 bg-lab-red" />
 
-              <div className="mt-10 grid gap-px overflow-hidden border border-white/10 bg-white/10">
+              <div className="mt-14 flex flex-col gap-10 lg:gap-12">
                 {textBlocks.map((block) => (
-                  <article key={block.title} className="bg-[#070707] p-5 sm:p-6">
-                    <h2 className="text-[11px] uppercase tracking-[0.3em] text-white/72">{block.title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-white/58 sm:text-base">{block.body}</p>
+                  <article key={block.title} className="group relative pl-5 sm:pl-7">
+                    <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10">
+                      <div className="absolute left-0 top-0 h-1/3 w-full bg-gradient-to-b from-lab-red to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    </div>
+                    <h2 className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/40 transition-colors duration-300 group-hover:text-lab-red/80">
+                      {block.title}
+                    </h2>
+                    <p className="mt-4 max-w-[26rem] text-sm leading-relaxed text-white/70 sm:text-base">
+                      {block.body}
+                    </p>
                   </article>
                 ))}
               </div>

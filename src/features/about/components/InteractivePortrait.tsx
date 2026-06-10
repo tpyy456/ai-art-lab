@@ -1,61 +1,69 @@
-import { useState } from 'react';
-
-type MaskPosition = {
-  active: boolean;
-  x: number;
-  y: number;
-};
+import { useRef } from 'react';
+import { motion, useSpring, useTransform, useMotionTemplate } from 'framer-motion';
 
 export default function InteractivePortrait() {
-  const [mask, setMask] = useState<MaskPosition>({ active: false, x: 50, y: 50 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const revealMask = mask.active
-    ? `radial-gradient(circle at ${mask.x}% ${mask.y}%, transparent 0 16%, rgba(0,0,0,0.18) 27%, #000 43%)`
-    : 'radial-gradient(circle at 50% 50%, #000 0%, #000 100%)';
+  const mouseX = useSpring(50, { stiffness: 60, damping: 25 });
+  const mouseY = useSpring(50, { stiffness: 60, damping: 25 });
+  const holeSize = useSpring(0, { stiffness: 35, damping: 20 });
+
+  const transparentStop = useTransform(holeSize, [0, 1], [0, 15]);
+  const shadowStop = useTransform(holeSize, [0, 1], [0, 32]);
+  const blackStop = useTransform(holeSize, [0, 1], [0, 55]);
+
+  const revealMask = useMotionTemplate`radial-gradient(circle at ${mouseX}% ${mouseY}%, transparent ${transparentStop}%, rgba(0,0,0,0.2) ${shadowStop}%, #000 ${blackStop}%)`;
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      mouseX.set(((e.clientX - rect.left) / rect.width) * 100);
+      mouseY.set(((e.clientY - rect.top) / rect.height) * 100);
+    }
+  };
+
+  const handleMouseEnter = () => holeSize.set(1);
+  const handleMouseLeave = () => holeSize.set(0);
 
   return (
     <section
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       aria-label="Interactive portrait placeholder"
-      className="group relative min-h-[32rem] overflow-hidden border border-lab-red/24 bg-[#050505] sm:min-h-[38rem] lg:min-h-[44rem]"
-      onMouseMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        setMask({
-          active: true,
-          x: ((event.clientX - rect.left) / rect.width) * 100,
-          y: ((event.clientY - rect.top) / rect.height) * 100,
-        });
-      }}
-      onMouseLeave={() => setMask((current) => ({ ...current, active: false }))}
+      className="relative min-h-[32rem] w-full overflow-hidden border border-white/[0.06] bg-[#080808] sm:min-h-[38rem] lg:min-h-[44rem]"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_24%,rgba(255,255,255,0.14),transparent_18rem),linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.015)_45%,rgba(214,30,32,0.08))]" />
-      <div className="absolute inset-x-8 bottom-12 top-14 border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025))] shadow-[inset_0_0_70px_rgba(255,255,255,0.03)]" />
-      <div className="absolute left-8 top-8 text-[10px] uppercase tracking-[0.34em] text-white/36">REAL PHOTO PLACEHOLDER</div>
-      <div className="absolute bottom-8 right-8 text-right text-[10px] uppercase tracking-[0.28em] text-white/26">
-        public/about/profile-real.jpg
+      {/* BOTTOM LAYER: Real Photo Placeholder */}
+      <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d0f]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.06),transparent_60%)]" />
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-[10px] font-mono tracking-[0.3em] text-white/30">[ REAL HUMAN PRESENCE ]</span>
+          <span className="text-[9px] font-mono tracking-widest text-white/15">public/about/profile-real.jpg</span>
+        </div>
       </div>
 
-      <div
-        className="absolute inset-0 bg-[radial-gradient(circle_at_52%_34%,rgba(255,22,22,0.18),transparent_13rem),linear-gradient(135deg,rgba(214,30,32,0.18),rgba(12,12,14,0.92)_42%,rgba(255,255,255,0.08))] transition-[mask-image,-webkit-mask-image] duration-700"
-        style={{
-          WebkitMaskImage: revealMask,
-          maskImage: revealMask,
-        }}
+      {/* TOP LAYER: AI Mask / Shell */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center bg-[#050505]"
+        style={{ WebkitMaskImage: revealMask, maskImage: revealMask }}
       >
-        <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:42px_42px]" />
-        <div className="absolute inset-x-10 bottom-16 top-16 border border-lab-red/32 bg-black/20 shadow-[0_0_50px_rgba(214,30,32,0.1),inset_0_0_42px_rgba(214,30,32,0.06)]" />
-        <div className="absolute left-8 top-8 text-[10px] uppercase tracking-[0.34em] text-lab-red/80">
-          AI MASK / ARMOR PLACEHOLDER
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(214,30,32,0.06),transparent_65%)]" />
+        <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-[10px] font-mono tracking-[0.3em] text-lab-red/50">[ DIGITAL SHELL / AI MASK ]</span>
+          <span className="text-[9px] font-mono tracking-widest text-lab-red/25">public/about/profile-mask.jpg</span>
         </div>
-        <div className="absolute bottom-8 right-8 text-right text-[10px] uppercase tracking-[0.28em] text-lab-red/42">
-          public/about/profile-mask.jpg
-        </div>
-      </div>
+      </motion.div>
 
-      <div className="pointer-events-none absolute inset-0 border border-white/[0.04]" />
-      <span className="pointer-events-none absolute -left-px -top-px h-8 w-8 border-l border-t border-lab-red/50" />
-      <span className="pointer-events-none absolute -right-px -top-px h-8 w-8 border-r border-t border-lab-red/50" />
-      <span className="pointer-events-none absolute -bottom-px -left-px h-8 w-8 border-b border-l border-lab-red/50" />
-      <span className="pointer-events-none absolute -bottom-px -right-px h-8 w-8 border-b border-r border-lab-red/50" />
+      {/* OVERLAY DECORATIONS */}
+      <div className="pointer-events-none absolute inset-0 border border-white/[0.02]" />
+      
+      {/* Corner Marks */}
+      <span className="pointer-events-none absolute left-5 top-5 h-3 w-3 border-l border-t border-white/20" />
+      <span className="pointer-events-none absolute right-5 top-5 h-3 w-3 border-r border-t border-white/20" />
+      <span className="pointer-events-none absolute bottom-5 left-5 h-3 w-3 border-b border-l border-white/20" />
+      <span className="pointer-events-none absolute bottom-5 right-5 h-3 w-3 border-b border-r border-white/20" />
     </section>
   );
 }
