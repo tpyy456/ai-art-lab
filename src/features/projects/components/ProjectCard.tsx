@@ -3,11 +3,15 @@ import { ProjectData } from '../projectsData';
 
 interface ProjectCardProps {
   project: ProjectData;
+  onClick?: () => void;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   return (
-    <div className="group relative w-full border border-white/[0.06] bg-[#080808] p-6 transition-colors duration-500 hover:border-lab-red/30 sm:p-8">
+    <div 
+      className="group relative w-full border border-white/[0.06] bg-[#080808] p-6 transition-colors duration-500 hover:border-lab-red/30 sm:p-8 cursor-pointer"
+      onClick={onClick}
+    >
       {/* Corner Crosshairs */}
       <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-white/20 transition-colors duration-500 group-hover:border-lab-red/60" />
       <div className="absolute right-0 top-0 h-2 w-2 border-r border-t border-white/20 transition-colors duration-500 group-hover:border-lab-red/60" />
@@ -55,6 +59,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </div>
       </div>
       
+      {/* View Details Prompt */}
+      <div className="mt-8 flex items-center justify-end">
+        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 transition-colors duration-300 group-hover:text-lab-red">
+          VIEW DETAILS / 查看详情
+          <span className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">{'>'}</span>
+        </span>
+      </div>
+
       {/* Hover Red Line Effect */}
       <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-lab-red/50 transition-all duration-700 ease-out group-hover:w-full" />
     </div>

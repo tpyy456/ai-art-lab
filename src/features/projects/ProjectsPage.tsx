@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useScanTransition } from '../../components/transition/RedScanTransition';
 import { ProjectCard } from './components/ProjectCard';
-import { professionalProjects, agentProjects } from './projectsData';
+import { ProjectDetailModal } from './components/ProjectDetailModal';
+import { professionalProjects, agentProjects, ProjectData } from './projectsData';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const { navigateWithScan } = useScanTransition();
+  const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -68,7 +70,11 @@ export const ProjectsPage: React.FC = () => {
           
           <div className="flex flex-col gap-8">
             {professionalProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onClick={() => setSelectedProject(project)}
+              />
             ))}
           </div>
         </section>
@@ -86,12 +92,22 @@ export const ProjectsPage: React.FC = () => {
           
           <div className="flex flex-col gap-8">
             {agentProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onClick={() => setSelectedProject(project)}
+              />
             ))}
           </div>
         </section>
 
       </main>
+
+      {/* Detail Modal Overlay */}
+      <ProjectDetailModal 
+        project={selectedProject} 
+        onClose={() => setSelectedProject(null)} 
+      />
     </div>
   );
 };
