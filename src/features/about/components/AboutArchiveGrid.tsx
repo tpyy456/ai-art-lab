@@ -65,7 +65,10 @@ export default function AboutArchiveGrid() {
         
         {/* Track 1: Left to Right */}
         <div className="group flex overflow-hidden">
-          <div className="flex gap-6 w-max animate-scroll-left hover:[animation-play-state:paused] motion-reduce:animate-none">
+          <div 
+            className="flex gap-6 w-max hover:[animation-play-state:paused] motion-reduce:!animate-none"
+            style={{ animation: 'archive-scroll-left 45s linear infinite' }}
+          >
             {row1.map((item, index) => (
               <Fragment key={`r1-${index}`}>
                 <ArchiveCard item={item} />
@@ -76,7 +79,10 @@ export default function AboutArchiveGrid() {
 
         {/* Track 2: Right to Left */}
         <div className="group flex overflow-hidden">
-          <div className="flex gap-6 w-max animate-scroll-right hover:[animation-play-state:paused] motion-reduce:animate-none">
+          <div 
+            className="flex gap-6 w-max hover:[animation-play-state:paused] motion-reduce:!animate-none"
+            style={{ animation: 'archive-scroll-right 45s linear infinite' }}
+          >
             {row2.map((item, index) => (
               <Fragment key={`r2-${index}`}>
                 <ArchiveCard item={item} />

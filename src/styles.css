@@ -53,4 +53,14 @@ a {
   background-size: 72px 72px;
 }
 
+@keyframes archive-scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes archive-scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
 
