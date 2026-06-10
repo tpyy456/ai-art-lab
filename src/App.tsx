@@ -8,13 +8,14 @@ import AiLabPanel from './features/lab/AiLabPanel';
 import { ScanTransitionProvider, useScanTransition } from './components/transition/RedScanTransition';
 
 const AboutPage = lazy(() => import('./features/about/AboutPage'));
+const ProjectsPage = lazy(() => import('./features/projects/ProjectsPage').then(module => ({ default: module.ProjectsPage })));
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
 const sections: { label: string; sub: string; lab?: boolean; to?: string }[] = [
   { label: 'About', sub: '关于我', to: '/about' },
   { label: 'AI LAB', sub: 'AI 实验室', lab: true },
-  { label: 'Projects', sub: '项目' },
+  { label: 'Projects', sub: '项目', to: '/projects' },
   { label: 'Resume', sub: '简历' },
   { label: 'Contact', sub: '联系我' },
 ];
@@ -149,6 +150,14 @@ function App() {
           element={
             <Suspense fallback={<LabFallback />}>
               <AboutPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <Suspense fallback={<LabFallback />}>
+              <ProjectsPage />
             </Suspense>
           }
         />
