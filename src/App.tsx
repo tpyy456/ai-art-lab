@@ -5,13 +5,14 @@ import Hero from './features/home';
 import IntroOverlay from './features/intro/IntroOverlay';
 import LabLayout from './features/lab/LabLayout';
 import AiLabPanel from './features/lab/AiLabPanel';
-import { ScanTransitionProvider } from './components/transition/RedScanTransition';
+import { ScanTransitionProvider, useScanTransition } from './components/transition/RedScanTransition';
 
+const AboutPage = lazy(() => import('./features/about/AboutPage'));
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
-const sections: { label: string; sub: string; lab?: boolean }[] = [
-  { label: 'About', sub: '关于我' },
+const sections: { label: string; sub: string; lab?: boolean; to?: string }[] = [
+  { label: 'About', sub: '关于我', to: '/about' },
   { label: 'AI LAB', sub: 'AI 实验室', lab: true },
   { label: 'Projects', sub: '项目' },
   { label: 'Resume', sub: '简历' },
@@ -33,6 +34,7 @@ function readIntroDone() {
 // 首页逻辑：IntroOverlay 先显示 → ENTER SYSTEM 转场 → 主站淡入 → Hero 仅在 introComplete 后挂载。
 // 与原 App 的唯一差别：introComplete 初值改为读 sessionStorage、完成时写入（仅本组件内，不改 Hero / IntroOverlay）。
 function HomeRoute() {
+  const { navigateWithScan } = useScanTransition();
   const [introComplete, setIntroComplete] = useState(readIntroDone);
   const [labOpen, setLabOpen] = useState(false);
 
@@ -100,6 +102,15 @@ function HomeRoute() {
                   >
                     {inner}
                   </button>
+                ) : section.to ? (
+                  <button
+                    key={section.label}
+                    type="button"
+                    onClick={() => navigateWithScan(section.to!)}
+                    className="group min-h-64 cursor-pointer bg-[#080808] p-6 text-left transition-colors duration-300 hover:bg-[#101010]"
+                  >
+                    {inner}
+                  </button>
                 ) : (
                   <article
                     key={section.label}
@@ -133,6 +144,14 @@ function App() {
       <ScanTransitionProvider>
         <Routes>
         <Route path="/" element={<HomeRoute />} />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<LabFallback />}>
+              <AboutPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/lab/_skeleton"
           element={
