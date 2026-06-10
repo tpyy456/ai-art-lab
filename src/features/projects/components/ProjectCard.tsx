@@ -9,7 +9,7 @@ interface ProjectCardProps {
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   return (
     <div 
-      className="group relative w-full border border-white/[0.06] bg-[#080808] p-6 transition-colors duration-500 hover:border-lab-red/30 sm:p-8 cursor-pointer"
+      className="group relative w-full border border-white/[0.06] bg-[#080808] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-lab-red/30 hover:shadow-[0_10px_30px_-15px_rgba(220,38,38,0.15)] sm:p-8 cursor-pointer"
       onClick={onClick}
     >
       {/* Corner Crosshairs */}
