@@ -56,7 +56,7 @@ export default function AboutArchiveGrid() {
         <div>
           <p className="text-[10px] uppercase tracking-[0.36em] text-lab-red">Archive</p>
           <h2 className="mt-3 text-2xl font-medium uppercase tracking-[0.18em] text-white sm:text-3xl">
-            WORK TRACE
+            TRACE / 生活片段
           </h2>
         </div>
       </div>

@@ -32,7 +32,7 @@ export default function InteractivePortrait() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       aria-label="Interactive portrait placeholder"
-      className="relative min-h-[32rem] w-full overflow-hidden border border-white/[0.06] bg-[#080808] sm:min-h-[38rem] lg:min-h-[44rem]"
+      className="relative min-h-[32rem] w-full overflow-hidden border border-white/[0.06] bg-[#080808] sm:min-h-[38rem] lg:h-full lg:min-h-[44rem]"
     >
       {/* BOTTOM LAYER: Real Photo Placeholder */}
       <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d0f]">

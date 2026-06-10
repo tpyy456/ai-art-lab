@@ -44,9 +44,9 @@ export default function AboutPage() {
             <p className="hidden text-[10px] uppercase tracking-[0.32em] text-white/30 sm:block">ABOUT / LIVING ARCHIVE</p>
           </header>
 
-          <div className="grid gap-16 py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24 items-center">
-            <div className="flex flex-col justify-center">
-              <p className="text-[11px] font-mono uppercase tracking-[0.46em] text-lab-red">Human Layer</p>
+          <div className="grid gap-16 py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24 items-start">
+            <div className="flex flex-col">
+              <p className="text-[11px] font-mono uppercase tracking-[0.46em] text-lab-red mt-2">Human Layer</p>
               <h1 className="mt-6 text-4xl font-medium uppercase leading-[1.05] tracking-wide text-white sm:text-5xl lg:text-[4rem]">
                 ABOUT
                 <span className="block text-white/30">TRACE</span>
