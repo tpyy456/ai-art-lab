@@ -71,9 +71,9 @@ function HomeRoute() {
         >
           <div className="mx-auto flex max-w-7xl flex-col gap-12">
             <div>
-              <p className="text-xs uppercase tracking-[0.45em] text-lab-red">Next Modules</p>
+              <p className="text-xs uppercase tracking-[0.45em] text-lab-red">NEXT MODULES / 下一组模块</p>
               <h2 className="mt-5 max-w-3xl text-4xl font-semibold tracking-normal text-white sm:text-6xl">
-                A quiet system for the work behind the experiments.
+                A quiet system for the work behind the experiments. / 这里整理关于我、项目、简历与联系方式。
               </h2>
             </div>
 

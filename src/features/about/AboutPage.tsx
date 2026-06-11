@@ -39,7 +39,7 @@ export default function AboutPage() {
               className="group inline-flex h-11 items-center gap-3 px-2 text-[10px] uppercase tracking-[0.24em] text-white/50 transition-colors duration-300 hover:text-white"
             >
               <ArrowLeft aria-hidden="true" className="h-4 w-4 text-lab-red transition-transform duration-300 group-hover:-translate-x-1" />
-              BACK HOME
+              BACK HOME / 返回首页
             </button>
             <p className="hidden text-[10px] uppercase tracking-[0.32em] text-white/30 sm:block">ABOUT / LIVING ARCHIVE</p>
           </header>

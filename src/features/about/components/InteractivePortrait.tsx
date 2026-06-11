@@ -38,8 +38,8 @@ export default function InteractivePortrait() {
       <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d0f]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.06),transparent_60%)]" />
         <div className="flex flex-col items-center gap-3">
-          <span className="text-[10px] font-mono tracking-[0.3em] text-white/30">[ REAL HUMAN PRESENCE ]</span>
-          <span className="text-[9px] font-mono tracking-widest text-white/15">public/about/profile-real.jpg</span>
+          <span className="text-[10px] font-mono tracking-[0.3em] text-white/30">[ REAL HUMAN LAYER / 真实影像层 ]</span>
+          <span className="text-[9px] font-mono tracking-widest text-white/15">IMAGE TO BE LINKED / 影像稍后接入</span>
         </div>
       </div>
 
@@ -51,8 +51,8 @@ export default function InteractivePortrait() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(214,30,32,0.06),transparent_65%)]" />
         <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:24px_24px]" />
         <div className="flex flex-col items-center gap-3">
-          <span className="text-[10px] font-mono tracking-[0.3em] text-lab-red/50">[ DIGITAL SHELL / AI MASK ]</span>
-          <span className="text-[9px] font-mono tracking-widest text-lab-red/25">public/about/profile-mask.jpg</span>
+          <span className="text-[10px] font-mono tracking-[0.3em] text-lab-red/50">[ DIGITAL MASK LAYER / 数字外壳层 ]</span>
+          <span className="text-[9px] font-mono tracking-widest text-lab-red/25">IMAGE TO BE LINKED / 影像稍后接入</span>
         </div>
       </motion.div>
 

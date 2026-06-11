@@ -9,7 +9,7 @@ export interface ProjectData {
   role: string;
   actions: string;
   capabilities: string;
-  status: 'CASE READY / 可展示' | 'IN PROGRESS / 进行中' | 'PLACEHOLDER / 待补充';
+  status: 'CASE READY / 可展示' | 'IN PROGRESS / 进行中';
   details: {
     background: string;
     workflow: string;
@@ -28,7 +28,7 @@ export const professionalProjects: ProjectData[] = [
     role: '判断回答准确性、专业性、完整性；对不严谨回答进行改写。',
     actions: '内容质量判断、问答改写、规则执行、艺术知识校验',
     capabilities: '内容质量判断、规则执行、专业知识校验、文本改写',
-    status: 'PLACEHOLDER / 待补充',
+    status: 'CASE READY / 可展示',
     details: {
       background: '围绕艺术学、美术史内容进行文本标注、问答评估与改写。',
       workflow: '读取问题与模型回答 → 对照参考答案 → 判断问题类型 → 标记质量 → 改写回答 → 复查表达。',
@@ -45,7 +45,7 @@ export const professionalProjects: ProjectData[] = [
     role: 'ASR 纠错、意图判断、模型回复质量判断、转人工边界识别。',
     actions: '规则理解、意图判断、多轮评估、语音质检',
     capabilities: '多轮理解、用户意图判断、客服场景评估、质量控制',
-    status: 'PLACEHOLDER / 待补充',
+    status: 'CASE READY / 可展示',
     details: {
       background: '面向会员充值、售后等客服场景，对语音/文本多轮对话进行标注与评估。',
       workflow: '核对语音转写 → 判断用户意图 → 检查上下文 → 评估回复是否解决问题 → 标记或改写。',

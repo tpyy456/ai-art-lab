@@ -18,7 +18,7 @@ function ArchiveCard({ item }: { item: typeof archiveItems[0] }) {
         <div className="absolute inset-0 mix-blend-overlay bg-lab-red/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         
         <div className="absolute inset-0 flex items-center justify-center text-[10px] tracking-[0.2em] text-white/20 transition-colors duration-500 group-hover:text-white/50 font-mono">
-          [ IMAGE PENDING ]
+          IMAGE TO BE LINKED / 影像稍后接入
         </div>
 
         {/* Corner marks */}
