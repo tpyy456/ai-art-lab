@@ -10,6 +10,7 @@ import { ScanTransitionProvider, useScanTransition } from './components/transiti
 const AboutPage = lazy(() => import('./features/about/AboutPage'));
 const ProjectsPage = lazy(() => import('./features/projects/ProjectsPage').then(module => ({ default: module.ProjectsPage })));
 const ResumePage = lazy(() => import('./features/resume/ResumePage').then(module => ({ default: module.ResumePage })));
+const ContactPage = lazy(() => import('./features/contact/ContactPage').then(module => ({ default: module.ContactPage })));
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
@@ -18,7 +19,7 @@ const sections: { label: string; sub: string; lab?: boolean; to?: string }[] = [
   { label: 'AI LAB', sub: 'AI 实验室', lab: true },
   { label: 'Projects', sub: '项目', to: '/projects' },
   { label: 'Resume', sub: '简历', to: '/resume' },
-  { label: 'Contact', sub: '联系我' },
+  { label: 'Contact', sub: '联系我', to: '/contact' },
 ];
 
 // 本标签页是否已完成开场，存进 sessionStorage，避免从 LAB 返回首页时重播 intro。
@@ -167,6 +168,14 @@ function App() {
           element={
             <Suspense fallback={<LabFallback />}>
               <ResumePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<LabFallback />}>
+              <ContactPage />
             </Suspense>
           }
         />
