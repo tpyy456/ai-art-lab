@@ -43,13 +43,8 @@ export const ProjectsPage: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="relative mx-auto max-w-5xl px-6 pb-32 pt-32 lg:px-12 lg:pt-40">
+      <main className="mx-auto max-w-5xl px-6 pb-32 pt-32 lg:px-12 lg:pt-40">
         
-        {/* Background Ambient Structure */}
-        <div className="pointer-events-none absolute inset-0 -z-10 flex justify-center opacity-[0.15]">
-          <div className="h-full w-full max-w-4xl border-x border-white/5 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]" />
-        </div>
-
         {/* Page Header */}
         <header className="mb-24 border-b border-white/[0.06] pb-12">
           <h1 className="mb-6 text-4xl font-medium uppercase tracking-[0.2em] text-white sm:text-5xl">
@@ -62,64 +57,49 @@ export const ProjectsPage: React.FC = () => {
           </p>
         </header>
 
-        <div className="relative">
-          {/* Vertical Scanning Axis */}
-          <div className="absolute bottom-0 left-4 top-0 hidden w-[1px] bg-gradient-to-b from-transparent via-white/10 to-transparent sm:block">
-            <div className="absolute left-[-1px] top-1/4 h-32 w-[3px] bg-gradient-to-b from-transparent via-lab-red/40 to-transparent blur-[1px]" />
+        {/* Section 1: Professional Practice */}
+        <section className="mb-24">
+          <div className="mb-10">
+            <h2 className="text-xl font-medium uppercase tracking-[0.15em] text-white/90">
+              PROFESSIONAL PRACTICE <span className="text-white/40">/ 岗位实践</span>
+            </h2>
+            <p className="mt-3 text-[13px] text-white/50">
+              与 AI 训练师、数据标注、内容评测、质量判断相关的项目经验。
+            </p>
           </div>
+          
+          <div className="flex flex-col gap-8">
+            {professionalProjects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onClick={() => setSelectedProject(project)}
+              />
+            ))}
+          </div>
+        </section>
 
-          {/* Section 1: Professional Practice */}
-          <section className="mb-24 sm:pl-16">
-            <div className="mb-10 relative">
-              <div className="absolute -left-12 top-1/2 hidden h-[1px] w-8 bg-white/20 sm:block" />
-              <div className="absolute -left-[51px] top-1/2 hidden h-1.5 w-1.5 -translate-y-1/2 rounded-full border border-lab-red bg-black sm:block" />
-              <h2 className="text-xl font-medium uppercase tracking-[0.15em] text-white/90">
-                PROFESSIONAL PRACTICE <span className="text-white/40">/ 岗位实践</span>
-              </h2>
-              <p className="mt-3 text-[13px] text-white/50">
-                与 AI 训练师、数据标注、内容评测、质量判断相关的项目经验。
-              </p>
-            </div>
-            
-            <div className="flex flex-col gap-8">
-              {professionalProjects.map((project) => (
-                <div key={project.id} className="relative">
-                  <div className="absolute -left-12 top-1/2 hidden h-[1px] w-12 bg-white/10 sm:block" />
-                  <ProjectCard 
-                    project={project} 
-                    onClick={() => setSelectedProject(project)}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Section 2: AI Agent Practice */}
-          <section className="sm:pl-16">
-            <div className="mb-10 relative">
-              <div className="absolute -left-12 top-1/2 hidden h-[1px] w-8 bg-white/20 sm:block" />
-              <div className="absolute -left-[51px] top-1/2 hidden h-1.5 w-1.5 -translate-y-1/2 rounded-full border border-lab-red bg-black sm:block" />
-              <h2 className="text-xl font-medium uppercase tracking-[0.15em] text-white/90">
-                AI AGENT PRACTICE <span className="text-white/40">/ AI Agent 实践</span>
-              </h2>
-              <p className="mt-3 text-[13px] text-white/50">
-                使用 Codex、Claude、Trae 等工具完成的个人项目、交互实验和自动化工具。
-              </p>
-            </div>
-            
-            <div className="flex flex-col gap-8">
-              {agentProjects.map((project) => (
-                <div key={project.id} className="relative">
-                  <div className="absolute -left-12 top-1/2 hidden h-[1px] w-12 bg-white/10 sm:block" />
-                  <ProjectCard 
-                    project={project} 
-                    onClick={() => setSelectedProject(project)}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
+        {/* Section 2: AI Agent Practice */}
+        <section>
+          <div className="mb-10">
+            <h2 className="text-xl font-medium uppercase tracking-[0.15em] text-white/90">
+              AI AGENT PRACTICE <span className="text-white/40">/ AI Agent 实践</span>
+            </h2>
+            <p className="mt-3 text-[13px] text-white/50">
+              使用 Codex、Claude、Trae 等工具完成的个人项目、交互实验和自动化工具。
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-8">
+            {agentProjects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onClick={() => setSelectedProject(project)}
+              />
+            ))}
+          </div>
+        </section>
 
       </main>
 
