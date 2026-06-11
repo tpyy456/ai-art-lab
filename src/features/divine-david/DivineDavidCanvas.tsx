@@ -11,7 +11,7 @@ type Point = {
   z?: number;
 };
 
-const DEFAULT_SOURCE = '/david-source.png';
+const DEFAULT_SOURCE = `${import.meta.env.BASE_URL}david-source.png`;
 const COLLAPSE_MODE: 'auto' | 'cursor' | 'center' = 'auto';
 const MAX_CANVAS_DPR = 1.35;
 const MIN_USABLE_CANVAS_SIZE = 160;

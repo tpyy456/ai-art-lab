@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 // 首页背景音乐控件（轻量版）：原生 <audio>，不创建 AudioContext / AnalyserNode，
 // 不做频谱/可视化，不新增 Canvas / RAF / 依赖。仅「点击播放 / 暂停 + 状态显示」。
 // 音频缺失时显示 AUDIO SOURCE MISSING，不报错；卸载时暂停并清理引用。
-const AUDIO_SRC = '/audio/home-ambient.mp3';
+const AUDIO_SRC = `${import.meta.env.BASE_URL}audio/home-ambient.mp3`;
 const DEFAULT_VOLUME = 0.25;
 
 type AudioStatus = 'checking' | 'missing' | 'paused' | 'playing';

@@ -1,5 +1,7 @@
 import React from 'react';
 
+const WECHAT_QR_SRC = `${import.meta.env.BASE_URL}contact/wechat-qr.png`;
+
 export const WechatQrPlaceholder: React.FC = () => {
   return (
     <div className="relative flex aspect-square w-full max-w-[280px] flex-col items-center justify-center border border-lab-red/20 bg-[#020202] p-8">
@@ -23,7 +25,7 @@ export const WechatQrPlaceholder: React.FC = () => {
       {/* Image Fallback Check (for future) */}
       <div className="absolute inset-0 flex items-center justify-center">
         <img 
-          src="/contact/wechat-qr.png" 
+          src={WECHAT_QR_SRC}
           alt="Wechat QR"
           className="h-full w-full object-contain opacity-0"
           onError={(e) => {
