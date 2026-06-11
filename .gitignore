@@ -1,6 +1,7 @@
 node_modules
 dist
 .tools
+.claude
 qa-screenshots
 *.tsbuildinfo
 .env

@@ -143,7 +143,7 @@ function LabFallback() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.PROD ? import.meta.env.BASE_URL : '/'}>
       <ScanTransitionProvider>
         <Routes>
         <Route path="/" element={<HomeRoute />} />
