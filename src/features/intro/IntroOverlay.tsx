@@ -53,34 +53,51 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
     let transitionFinalizeTimer: number | null = null;
     let cleanupLensSystem = () => {};
     let waterIntervalId: number | null = null;
+    let isMobilePerformance = window.matchMedia('(max-width: 760px)').matches;
+    let lastLensPaintAt = 0;
+    let lastPaintedLens = { x: Number.NaN, y: Number.NaN, radius: Number.NaN };
 
     const updateLens = () => {
       if (isTransitioning || hasEntered) return;
 
-      const lensX = `${state.x}px`;
-      const lensY = `${state.y}px`;
-      const lensRadius = `${state.radius}px`;
+      const now = performance.now();
+      if (isMobilePerformance && now - lastLensPaintAt < 1000 / 30) return;
+
+      const paintedX = Math.round(state.x * 10) / 10;
+      const paintedY = Math.round(state.y * 10) / 10;
+      const paintedRadius = Math.round(state.radius * 10) / 10;
+      if (
+        paintedX === lastPaintedLens.x &&
+        paintedY === lastPaintedLens.y &&
+        paintedRadius === lastPaintedLens.radius
+      ) {
+        return;
+      }
+
+      lastLensPaintAt = now;
+      lastPaintedLens = { x: paintedX, y: paintedY, radius: paintedRadius };
+
+      const lensX = `${paintedX}px`;
+      const lensY = `${paintedY}px`;
+      const lensRadius = `${paintedRadius}px`;
       container.style.setProperty('--lens-x', lensX);
       container.style.setProperty('--lens-y', lensY);
       container.style.setProperty('--lens-radius', lensRadius);
-      bgLayer?.style.setProperty('--lens-x', lensX);
-      bgLayer?.style.setProperty('--lens-y', lensY);
-      bgLayer?.style.setProperty('--lens-radius', lensRadius);
 
-      fgLayer.style.clipPath = `circle(${state.radius}px at ${state.x}px ${state.y}px)`;
+      fgLayer.style.clipPath = `circle(${paintedRadius}px at ${paintedX}px ${paintedY}px)`;
 
-      const innerRadius = state.radius;
-      const edgeSoftness = Math.max(10, state.radius * 0.1);
-      const outerRadius = state.radius + Math.max(40, state.radius * 0.34);
-      const maskStr = `radial-gradient(circle at ${state.x}px ${state.y}px, transparent ${Math.max(0, innerRadius - edgeSoftness)}px, rgba(0,0,0,0.42) ${innerRadius - edgeSoftness * 0.25}px, rgba(0,0,0,1) ${innerRadius + edgeSoftness * 0.5}px, rgba(0,0,0,0.48) ${outerRadius - edgeSoftness}px, transparent ${outerRadius}px)`;
+      const innerRadius = paintedRadius;
+      const edgeSoftness = Math.max(10, paintedRadius * 0.1);
+      const outerRadius = paintedRadius + Math.max(40, paintedRadius * 0.34);
+      const maskStr = `radial-gradient(circle at ${paintedX}px ${paintedY}px, transparent ${Math.max(0, innerRadius - edgeSoftness)}px, rgba(0,0,0,0.42) ${innerRadius - edgeSoftness * 0.25}px, rgba(0,0,0,1) ${innerRadius + edgeSoftness * 0.5}px, rgba(0,0,0,0.48) ${outerRadius - edgeSoftness}px, transparent ${outerRadius}px)`;
 
       edgeLayer.style.webkitMaskImage = maskStr;
       edgeLayer.style.maskImage = maskStr;
 
-      const size = state.radius * 2;
+      const size = paintedRadius * 2;
       gsap.set(glassRim, {
-        x: state.x,
-        y: state.y,
+        x: paintedX,
+        y: paintedY,
         xPercent: -50,
         yPercent: -50,
         width: size,
@@ -104,6 +121,15 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         state.water = 0;
         waterDisplacement.setAttribute('scale', '0');
         setWaterActive(false);
+        if (waterIntervalId !== null) {
+          window.clearInterval(waterIntervalId);
+          waterIntervalId = null;
+        }
+        return;
+      }
+
+      if (isMobilePerformance) {
+        state.water *= Math.pow(0.08, deltaSeconds / 0.72);
         return;
       }
 
@@ -118,6 +144,12 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
 
       state.water *= Math.pow(0.08, deltaSeconds / 1.25);
     }
+
+    const ensureWaterLoop = () => {
+      if (waterIntervalId !== null) return;
+      lastWaterFrame = performance.now();
+      waterIntervalId = window.setInterval(updateWaterRipple, isMobilePerformance ? 1000 / 24 : 1000 / 60);
+    };
 
     const createCircularText = (selector: string) => {
       const rollTexts = container.querySelectorAll(selector);
@@ -152,7 +184,6 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
     createCircularText('.bg-roll-text-clone');
     createCircularText('.fg-roll-text');
     updateLens();
-    waterIntervalId = window.setInterval(updateWaterRipple, 1000 / 60);
 
     gsap.set(glassRim, { xPercent: -50, yPercent: -50 });
 
@@ -164,22 +195,30 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         reduceMotion: '(prefers-reduced-motion: reduce)'
       },
       (context) => {
-        const { reduceMotion } = context.conditions as any;
-        const motionDuration = reduceMotion ? 0.01 : 0.18;
-        const radiusDuration = reduceMotion ? 0.01 : 0.56;
+        const { isMobile, reduceMotion } = context.conditions as {
+          isMobile?: boolean;
+          reduceMotion?: boolean;
+        };
+        isMobilePerformance = Boolean(isMobile);
+
+        const motionDuration = reduceMotion ? 0.01 : isMobilePerformance ? 0.28 : 0.18;
+        const radiusDuration = reduceMotion ? 0.01 : isMobilePerformance ? 0.42 : 0.56;
         const xTo = gsap.quickTo(state, 'x', { duration: motionDuration, ease: 'power3.out' });
         const yTo = gsap.quickTo(state, 'y', { duration: motionDuration, ease: 'power3.out' });
         const rTo = gsap.quickTo(state, 'radius', { duration: radiusDuration, ease: 'back.out(1.4)' });
+        let lastMobilePointerAt = 0;
 
         gsap.ticker.add(updateLens);
 
         const disturbWater = (strength = 10) => {
           if (isTransitioning || hasEntered || reduceMotion) return;
           setWaterActive(true);
-          if (state.water <= 0.02) {
+          if (!isMobilePerformance && state.water <= 0.02) {
             waterNoise?.setAttribute('seed', String(Math.floor(performance.now()) % 99));
           }
-          state.water = clampValue(3, Math.max(state.water, strength), 12);
+          const maxStrength = isMobilePerformance ? 6 : 12;
+          state.water = clampValue(3, Math.max(state.water, strength), maxStrength);
+          ensureWaterLoop();
           updateWaterRipple();
         };
 
@@ -197,6 +236,13 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
 
         const handlePointerMove = (event: PointerEvent) => {
           if (isTransitioning || hasEntered) return;
+
+          const now = performance.now();
+          if (isMobilePerformance) {
+            if (!isInteracting || now - lastMobilePointerAt < 42) return;
+            lastMobilePointerAt = now;
+          }
+
           xTo(event.clientX);
           yTo(event.clientY);
 
@@ -205,10 +251,8 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
           const dx = event.clientX - lastRipplePoint.x;
           const dy = event.clientY - lastRipplePoint.y;
           const distance = Math.hypot(dx, dy);
-          const now = performance.now();
-
           if (distance > 4 && now - lastRippleAt > 45) {
-            disturbWater(clampValue(4, distance * 0.55, 12));
+            disturbWater(clampValue(4, distance * 0.55, isMobilePerformance ? 6 : 12));
             lastRipplePoint = { x: event.clientX, y: event.clientY };
             lastRippleAt = now;
           }
@@ -235,6 +279,11 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         const handlePointerDown = (event: PointerEvent) => {
           if (isTransitioning || hasEntered) return;
           if (shouldIgnorePointer(event)) return;
+          if (isMobilePerformance) {
+            state.x = event.clientX;
+            state.y = event.clientY;
+            updateLens();
+          }
           openLens({ x: event.clientX, y: event.clientY });
         };
 
@@ -266,8 +315,8 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
           });
         };
 
-        window.addEventListener('pointermove', handlePointerMove);
-        window.addEventListener('pointerdown', handlePointerDown);
+        window.addEventListener('pointermove', handlePointerMove, { passive: true });
+        window.addEventListener('pointerdown', handlePointerDown, { passive: true });
         window.addEventListener('pointerup', closeLens);
         window.addEventListener('pointercancel', closeLens);
         window.addEventListener('blur', closeLens);
@@ -289,14 +338,16 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         };
 
         if (!reduceMotion) {
+          const logoDuration = isMobilePerformance ? 0.86 : 1.25;
+          const descriptionDuration = isMobilePerformance ? 0.8 : 1.2;
           gsap.timeline({ defaults: { ease: 'power4.out' } })
             .addLabel('intro', 0)
-            .fromTo(container.querySelectorAll('.logo'), { y: 42, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.25 }, 'intro+=0.14')
-            .fromTo(container.querySelectorAll('.description'), { y: 18, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.2 }, 'intro+=0.34');
+            .fromTo(container.querySelectorAll('.logo'), { y: 42, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: logoDuration }, 'intro+=0.14')
+            .fromTo(container.querySelectorAll('.description'), { y: 18, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: descriptionDuration }, 'intro+=0.3');
 
           gsap.to(container.querySelectorAll('.roll-text'), {
             rotation: 360,
-            duration: 10,
+            duration: isMobilePerformance ? 14 : 10,
             repeat: -1,
             ease: 'none'
           });
@@ -349,8 +400,9 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
 
     const resizeRippleCanvas = (width: number, height: number, compact: boolean) => {
       if (!rippleCanvas || !rippleContext) return false;
-      const dprLimit = compact ? 0.9 : 1.2;
-      const dpr = Math.max(0.75, Math.min(window.devicePixelRatio || 1, dprLimit));
+      const dprLimit = compact ? 0.75 : 1.2;
+      const dprFloor = compact ? 0.65 : 0.75;
+      const dpr = Math.max(dprFloor, Math.min(window.devicePixelRatio || 1, dprLimit));
 
       rippleCanvas.width = Math.ceil(width * dpr);
       rippleCanvas.height = Math.ceil(height * dpr);
@@ -366,7 +418,7 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
     const drawBrokenRippleRing = (ctx: CanvasRenderingContext2D, radius: number, alpha: number, lineWidth: number, ringIndex: number, elapsed: number) => {
       const { cx, cy, width, height, seed, compact } = transitionRippleState;
       const tau = Math.PI * 2;
-      const segmentCount = Math.min(compact ? 54 : 72, Math.max(22, Math.round(radius / (compact ? 10 : 8))));
+      const segmentCount = Math.min(compact ? 32 : 72, Math.max(compact ? 16 : 22, Math.round(radius / (compact ? 15 : 8))));
       const step = tau / segmentCount;
       const drift = elapsed * 0.00012 * (ringIndex % 2 ? -1 : 1);
       const wobbleAmount = Math.min(7.5, 1.8 + radius * 0.009);
@@ -410,11 +462,13 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         const widthNoise = 0.78 + rippleRandom(seed + ringIndex, i, 5) * 0.54;
         const baseWidth = Math.max(0.7, lineWidth * widthNoise);
 
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(70, 0, 8, ${(segmentAlpha * 0.56).toFixed(3)})`;
-        ctx.lineWidth = baseWidth * 4.8;
-        ctx.arc(cx, cy, segmentRadius + baseWidth * 0.95, start, start + span);
-        ctx.stroke();
+        if (!compact) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(70, 0, 8, ${(segmentAlpha * 0.56).toFixed(3)})`;
+          ctx.lineWidth = baseWidth * 4.8;
+          ctx.arc(cx, cy, segmentRadius + baseWidth * 0.95, start, start + span);
+          ctx.stroke();
+        }
 
         ctx.beginPath();
         ctx.strokeStyle = `rgba(165, 18, 30, ${(segmentAlpha * 0.82).toFixed(3)})`;
@@ -428,7 +482,7 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         ctx.arc(cx, cy, segmentRadius - baseWidth * 1.05, start + span * 0.15, start + span * 0.78);
         ctx.stroke();
 
-        if (rippleRandom(seed + ringIndex, i, 6) > 0.62) {
+        if (!compact && rippleRandom(seed + ringIndex, i, 6) > 0.62) {
           ctx.beginPath();
           ctx.strokeStyle = `rgba(255, 170, 150, ${(segmentAlpha * 0.28).toFixed(3)})`;
           ctx.lineWidth = Math.max(0.42, baseWidth * 0.42);
@@ -488,8 +542,8 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
 
       const innerFade = Math.max(0, 1 - elapsed / 720);
       if (innerFade > 0.01) {
-        const innerCount = compact ? 4 : 6;
-        const innerGap = compact ? 10 : 12;
+        const innerCount = compact ? 3 : 6;
+        const innerGap = compact ? 13 : 12;
 
         for (let i = 0; i < innerCount; i++) {
           const radius = 9 + i * innerGap + elapsed * 0.045;
@@ -500,8 +554,8 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
       }
 
       const frontRadius = 10 + maxRadius * waveProgress;
-      const ringCount = compact ? 9 : 13;
-      const ringGap = compact ? 13 : 15;
+      const ringCount = compact ? 6 : 13;
+      const ringGap = compact ? 18 : 15;
       const fade = Math.pow(1 - progress, 0.58);
 
       for (let i = 0; i < ringCount; i++) {
@@ -542,7 +596,7 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
       transitionRippleState.maxRadius = Math.max(180, maxRadius * (compact ? 0.62 : 0.72));
       transitionRippleState.seed = (Math.floor(transitionRippleState.start) % 997) + 1;
       transitionRippleState.compact = compact;
-      transitionRippleState.duration = compact ? 960 : 1180;
+      transitionRippleState.duration = compact ? 840 : 1180;
 
       drawTransitionRippleFrame(transitionRippleState.start);
       transitionRippleFrame = window.requestAnimationFrame(drawTransitionRippleFrame);

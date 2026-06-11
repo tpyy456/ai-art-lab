@@ -371,7 +371,47 @@
 }
 
 @media (max-width: 760px) {
-    .intro-container { cursor: auto; }
+    .intro-container {
+        cursor: auto;
+        touch-action: none;
+        overscroll-behavior: none;
+    }
+
+    .intro-container .bg-layer .content {
+        filter: blur(10px);
+    }
+
+    .intro-container .edge-distortion-layer {
+        filter: blur(0.4px) contrast(1.08);
+        opacity: 0.36;
+    }
+
+    .intro-container .edge-distortion-layer .bg-content-clone {
+        filter: blur(4px) contrast(1.12);
+        opacity: 0.62;
+    }
+
+    .intro-container .fg-layer .content-wrapper,
+    .intro-container.is-water-active .fg-layer .content-wrapper {
+        filter: brightness(0.98) contrast(1.06);
+        transition: transform 180ms ease-out;
+    }
+
+    .intro-container.is-water-active .fg-layer .content-wrapper {
+        transform: scale(1.008);
+    }
+
+    .intro-container .glass-rim {
+        box-shadow:
+            inset 12px 12px 22px rgba(0, 0, 0, 0.94),
+            inset -8px -8px 16px rgba(255, 255, 255, 0.14),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+            inset 0 0 0 3px rgba(0, 0, 0, 0.5),
+            inset 0 0 0 4px var(--rim-red-line),
+            0 12px 26px rgba(0, 0, 0, 0.68),
+            0 0 12px var(--rim-red-glow);
+    }
+
     .intro-container .content { width: 86vw; margin-top: -44px; }
     .intro-container .logo { font-size: 6.3rem; line-height: 0.95; }
     .intro-container .description { max-width: 23rem; margin-top: 16px; font-size: 0.88rem; line-height: 1.5; }
