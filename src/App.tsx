@@ -9,6 +9,7 @@ import { ScanTransitionProvider, useScanTransition } from './components/transiti
 
 const AboutPage = lazy(() => import('./features/about/AboutPage'));
 const ProjectsPage = lazy(() => import('./features/projects/ProjectsPage').then(module => ({ default: module.ProjectsPage })));
+const ResumePage = lazy(() => import('./features/resume/ResumePage').then(module => ({ default: module.ResumePage })));
 const SkeletonLab = lazy(() => import('./features/lab/_skeleton/SkeletonLab'));
 const TextCollapseLab = lazy(() => import('./features/lab/text-collapse/TextCollapseLab'));
 
@@ -16,7 +17,7 @@ const sections: { label: string; sub: string; lab?: boolean; to?: string }[] = [
   { label: 'About', sub: '关于我', to: '/about' },
   { label: 'AI LAB', sub: 'AI 实验室', lab: true },
   { label: 'Projects', sub: '项目', to: '/projects' },
-  { label: 'Resume', sub: '简历' },
+  { label: 'Resume', sub: '简历', to: '/resume' },
   { label: 'Contact', sub: '联系我' },
 ];
 
@@ -158,6 +159,14 @@ function App() {
           element={
             <Suspense fallback={<LabFallback />}>
               <ProjectsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/resume"
+          element={
+            <Suspense fallback={<LabFallback />}>
+              <ResumePage />
             </Suspense>
           }
         />
