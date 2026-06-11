@@ -92,11 +92,11 @@ export const ContactPage: React.FC = () => {
           </section>
 
           {/* Section 3: Wechat QR */}
-          <section>
+          <section className="flex flex-col">
             <h2 className="mb-8 font-mono text-sm uppercase tracking-[0.2em] text-white/70">
               WECHAT QR <span className="text-white/30">/ 微信二维码</span>
             </h2>
-            <div className="flex justify-start">
+            <div className="flex flex-1 items-center justify-start lg:justify-center pb-8 lg:pb-0">
               <WechatQrPlaceholder />
             </div>
           </section>
