@@ -1,105 +1,108 @@
 ---
-status: complete
+status: live
 type: plan
-module: mobile-responsive-audit
+module: mobile-local-online-reaudit
 last_updated: 2026-06-12
 ---
 
 # Current Agent Handoff
 
-## 1. 当前任务目标
+## 1. 当前任务
 
-基于本地 `6d7a3c3 fix(mobile): improve intro startup and performance`，完成全站移动端布局审查与低风险响应式修复，并通过 production preview、提交、推送、GitHub Pages 部署和线上验收。
+重新实际审查本地与 GitHub Pages 线上端的移动端效果，重点复核 Intro 首次进入、ENTER SYSTEM 转场、首页与子页面跳转、移动端布局和缓存状态。不得沿用上一轮“已经正常”的结论，必须重新采集浏览器证据后判断属于代码、部署、缓存还是 sessionStorage 行为。
 
 ## 2. 当前 Git 状态
 
 - 分支：`main`
-- 任务开始时工作区：干净
-- 任务开始时本地 HEAD：`6d7a3c3`
-- 任务开始时远程 `origin/main`：`39540eb`
-- 响应式修复 commit：`a3c450a fix(mobile): improve responsive layout across pages`
-- `6d7a3c3` 与 `a3c450a` 均已 push
+- 当前 HEAD：`991373888d1352a0191637ea9aff671f7a064f0e`
+- 当前 `origin/main`：`991373888d1352a0191637ea9aff671f7a064f0e`
+- 本地与远程：同步
+- 本轮开始时工作区：干净
+- 远程：`https://github.com/tpyy456/ai-art-lab.git`
+- 线上：`https://tpyy456.github.io/ai-art-lab/`
 
-## 3. 当前本地应用版本
-
-- Intro 移动端优化：`6d7a3c3 fix(mobile): improve intro startup and performance`
-- 全站响应式修复：`a3c450a fix(mobile): improve responsive layout across pages`
-
-## 4. 当前远程线上版本
-
-- 已部署应用 commit：`a3c450a`
-- GitHub Actions run：`27402737945`，结论 `success`
-- 线上地址：`https://tpyy456.github.io/ai-art-lab/`
-
-## 5. 本地是否领先远程
-
-应用代码没有未推送提交。最终仅需提交并 push 本文档的完成状态。
-
-## 6. 允许修改文件
+## 3. 本轮允许修改范围
 
 - `src/App.tsx`
-- `src/styles.css`
-- `src/features/about/AboutPage.tsx`
-- `src/features/about/components/InteractivePortrait.tsx`
-- `src/features/about/components/AboutArchiveGrid.tsx`
-- `src/features/projects/ProjectsPage.tsx`
-- `src/features/projects/components/ProjectCard.tsx`
-- `src/features/projects/components/ProjectDetailModal.tsx`
-- `src/features/resume/ResumePage.tsx`
-- `src/features/resume/components/RoleMatchAnalyzer.tsx`
-- `src/features/contact/ContactPage.tsx`
-- `src/features/contact/components/ContactChannel.tsx`
-- `src/features/contact/components/WechatQrPlaceholder.tsx`
+- `src/features/intro/IntroOverlay.tsx`
+- `src/features/intro/intro.css`
+- `src/features/about/*`
+- `src/features/projects/*`
+- `src/features/resume/*`
+- `src/features/contact/*`
 - `src/features/lab/AiLabPanel.tsx`
 - `src/features/lab/text-collapse/TextCollapseLab.tsx`
-- 必要时小范围修改 Intro 文件
+- `src/styles.css`
 - 本交接文档
 
-## 7. 禁止修改文件
+仅在浏览器证据确认代码问题后做小范围修复；如果属于缓存、部署或预期 sessionStorage 行为，不改页面代码。
+
+## 4. 本轮禁止修改范围
 
 - `src/features/divine-david/DivineDavidCanvas.tsx`
 - `src/features/lab/text-collapse/collapseEngine.ts`
 - `src/features/lab/text-collapse/matrix.ts`
 - `src/features/lab/text-collapse/types.ts`
 - `src/components/transition/RedScanTransition.tsx`
-- `.github/workflows/deploy.yml`
 - `vite.config.ts`
+- `.github/workflows/deploy.yml`
 - `package.json`
 - `package-lock.json`
 - `public/` 图片资源
 
-## 8. 已完成进度
+不得改桌面视觉、页面文案、核心引擎，不得新增依赖、Canvas 或 RAF。
 
-- 审查了 `390x844`、`375x812`、`430x932` 三组移动端视口。
-- 覆盖首页、About、Projects、Resume、Contact、AI LAB 面板和 Text Collapse。
-- 修复 Text Collapse 三个底部按钮在 375/390px 下被裁切的问题。
-- 将 Projects、Resume、Contact 返回按钮和 AI LAB 关闭按钮提升到约 44px 触控高度。
-- 将 Projects 弹窗限制为移动端 `88dvh`，保留内部滚动并压缩移动端标题与间距。
-- 降低 About 移动端肖像高度、段落间距和 Archive 卡片宽度。
-- 压缩 Projects、Resume、Contact 的移动端标题、section 间距和卡片 padding。
-- 将 Contact 复制按钮改为移动端整行 44px，并移除不存在二维码图片的隐藏请求，保留原占位视觉。
-- 修复 Contact 响应式改动引发的桌面邮箱换行回归。
-- 未修改 Intro、David、Text Collapse 引擎、扫描转场和部署配置。
+## 5. 当前已知问题
 
-## 9. 当前验证结果
+- 用户反馈线上移动端“看起来没有明显变化”。
+- 用户反馈“开始的跳转还不行”。
+- 已确认线上 HTML 引用 `index-5bC4mJ52.js` 与 `index-BLHlxVHI.css`，和 `a3c450a` 构建产物一致，不是未部署旧版本。
+- GitHub Pages HTML 与静态资源使用 `Cache-Control: max-age=600`；短时缓存存在，但当前获取到的是最新 hash。
+- 当前实现只要本标签页的 `sessionStorage.tpy-intro-complete === "1"`，刷新首页就会直接进入 Hero。
+- 同一浏览器会话恢复旧标签页时，`sessionStorage` 仍可能保留，因此用户可能认为首次进入被跳过。
+- 当前没有 service worker，不存在 service worker 缓存旧前端的问题。
+- 实测本地与线上 Intro 跳转时序几乎一致：约 1.45 秒时 Intro 才卸载，此时 Hero 主容器透明度约 0.02；约 2.4 秒时 Hero 才接近完全可见。红黑转场和 Hero 的 1.2 秒淡入串行，形成明显黑场/迟滞。
+- 当前没有 `?intro=1` 强制重播入口；只要 sessionStorage 标记存在，用户无法通过普通刷新重新检查 Intro。
+- 线上首页会请求不存在的 `/ai-art-lab/audio/home-ambient.mp3`，产生 404；本轮允许范围不包含 AudioDock，暂未修改。
+- GitHub Pages 子路由刷新由 `404.html` fallback 接管，页面能够加载，但主文档 HTTP 状态与控制台会显示 404。这不是布局失败，但属于 GitHub Pages BrowserRouter 的已知表现。
+- Text Collapse 顶部“返回首页”和首页移动端 Navbar 文字链接的实际点击高度约 16.5px；当前允许范围不包含 LabLayout/Navbar，暂未修改。
+- 上一轮自动化报告不能作为本轮最终结论。
 
-- 三个移动端视口的六个主要页面均无 body 级横向溢出。
-- 移动端首次访问首页显示 Intro，真实触控 ENTER 后进入 Hero。
-- 首页 ENTER LAB 可滚动至第二屏；AI LAB 面板可读、可关闭，关闭按钮 44px。
-- AI LAB 到 Text Collapse 的红色扫描转场正常。
-- Projects 弹窗约 731px 高（390x844），内容可滚动，关闭控件约 44px。
-- Resume JD 本地分析正常返回 `82/100`。
-- Contact 邮箱复制成功，剪贴板内容正确。
-- Text Collapse 三个按钮均位于 390px 屏幕内、各 44px 高；COLLAPSE 与 RESET 可点击。
-- `1440x900` 桌面回归：首页、About、Projects、Resume、Contact、Text Collapse 均无横向溢出，构图正常。
-- production preview 使用 `/ai-art-lab/` base 正常。
-- 唯一控制台 404 为本地 preview 根路径的 `favicon.ico`，与页面资源和本轮修改无关。
-- TypeScript 检查与 Vite build 已通过，2014 modules transformed。
-- GitHub Actions Pages workflow 已成功部署 `a3c450a`。
-- 线上 `390x844`、`375x812`、`430x932` 六个路由均无横向溢出。
-- GitHub Pages 子路由直接访问会先返回预期的 `404.html` 文档状态，但 React 应用正常加载对应路由。
-- 线上 Intro、Hero、AI LAB 面板、扫描跳转、Projects 弹窗、Resume 分析、Contact 复制、Text Collapse COLLAPSE/RESET 均已通过。
+## 6. 当前验证进度
 
-## 10. 中断后的继续位置
+- 已确认 `main` 工作区在本轮开始时干净。
+- 已确认本地 HEAD 与 `origin/main` 均为 `9913738`，本地远程同步。
+- 已用临时 `--base /` 在 `127.0.0.1:5173` 启动本地 Vite dev server，未修改正式 Vite 配置。
+- 已在 Codex 内置浏览器打开本地首页。
+- 已确认本地与线上 390x844 首次独立访问均可显示 Intro，ENTER 区域约 81x81px。
+- 已确认线上当前加载最新 JS/CSS hash。
+- 已确认 Intro 转场与 Hero 淡入串行，是“开始跳转不理想”的真实代码层原因。
+- 已完成本地桌面、390x844、375x812、430x932 六个路由审查：无 body 级横向溢出。
+- 已完成线上桌面与三组移动视口六个路由审查：成功加载的页面无横向溢出，加载的 JS 均为最新 `index-5bC4mJ52.js`。
+- 已重新验证 Projects 弹窗、Resume JD 分析、Contact 复制、Text Collapse 控件：本地与线上结果一致且可用。
+- 已重新验证首页第二屏 About/Projects/Resume/Contact、AI LAB 到 Text Collapse 的扫描导航：均能导航；扫描遮罩约 1.3–1.5 秒内持续阻挡操作，属于现有设计节奏。
+- 本地与线上页面布局没有实质差异，因此“线上没有变化”不是部署缺失；上一轮改动主要是触控面积、间距和溢出修复，本来就不属于显著视觉重设计。
+- 已实施最小代码修复：
+  - `App.tsx` 支持 `?intro=1` 强制重播 Intro，正常 sessionStorage 逻辑不变。
+  - 移动端 Hero 淡入由 1.2 秒缩短为 0.32 秒，桌面端仍为 1.2 秒。
+  - `IntroOverlay.tsx` 仅在 compact/mobile 转场下提前红黑收束，桌面转场时序保持原值。
+- 修复前移动端 Hero 接近完全可见约需 2.4 秒；修复后独立测试约 1.35–1.62 秒。
+- 已验证 sessionStorage 已完成标记存在时：
+  - 普通 `/` 仍直接进入 Hero。
+  - `/?intro=1` 会强制显示 Intro。
+- 已验证 375x812、390x844、430x932 均可完成 Intro；1440x900 桌面时序未改变。
+- 已完成 production preview `/ai-art-lab/` base 验证：
+  - 三组移动视口在约 1.34–1.41 秒内完成 Intro 卸载和 Hero 显示。
+  - About、Projects、Resume、Contact 首页入口均能通过现有扫描转场进入正确路由。
+  - AI LAB 面板可打开并进入 Text Collapse。
+  - 三组移动视口均无 body 级横向溢出。
+- 已重新运行 TypeScript `tsc --noEmit` 与 Vite production build，均通过；当前本地新主包为 `index-zgKplmYl.js`。
+- 当前 production preview 交互验证通过：Projects 弹窗、Resume JD 分析、Contact 复制、Text Collapse 控件均正常。
 
-本轮任务已完成，没有待续实现。后续任务应从 `a3c450a` 及其后的文档收尾 commit 开始，不要回退移动端 Intro 或全站响应式修复。
+## 7. 中断后的继续位置
+
+1. 提交 `App.tsx`、`IntroOverlay.tsx` 和本交接文档。
+2. push 到 `origin/main` 并等待 GitHub Pages workflow 完成。
+3. 确认线上 HTML 主包从旧的 `index-5bC4mJ52.js` 更新为本轮新 hash。
+4. 在线上重新验证三组移动视口、`?intro=1`、正常 sessionStorage 跳过逻辑和入口导航。
+5. 最终更新本交接文档为完成状态；本地 5173 dev server 可保留供用户查看。

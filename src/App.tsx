@@ -28,6 +28,9 @@ const INTRO_DONE_KEY = 'tpy-intro-complete';
 
 function readIntroDone() {
   try {
+    if (new URLSearchParams(window.location.search).get('intro') === '1') {
+      return false;
+    }
     return sessionStorage.getItem(INTRO_DONE_KEY) === '1';
   } catch {
     return false;
@@ -39,6 +42,7 @@ function readIntroDone() {
 function HomeRoute() {
   const { navigateWithScan } = useScanTransition();
   const [introComplete, setIntroComplete] = useState(readIntroDone);
+  const [isMobileIntro] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [labOpen, setLabOpen] = useState(false);
 
   const handleIntroComplete = () => {
@@ -56,7 +60,7 @@ function HomeRoute() {
       <motion.main
         initial={false}
         animate={{ opacity: introComplete ? 1 : 0 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
+        transition={{ duration: isMobileIntro ? 0.32 : 1.2, ease: "easeOut" }}
         className="min-h-screen bg-lab-black text-white"
         style={{
           // Keep it pointer-events-none until intro is fully complete to prevent early clicks

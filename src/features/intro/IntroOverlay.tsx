@@ -687,6 +687,10 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
       const cy = rect.top + rect.height / 2;
       const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const compactTransition =
+        viewportWidth <= 760 ||
+        viewportHeight <= 560 ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const maxRippleRadius = Math.ceil(
         Math.hypot(
           Math.max(cx, viewportWidth - cx),
@@ -742,7 +746,10 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
         }
       });
       transitionTimeline = tl;
-      transitionFinalizeTimer = window.setTimeout(() => finalizeEnterTransition(true), 1800);
+      transitionFinalizeTimer = window.setTimeout(
+        () => finalizeEnterTransition(true),
+        compactTransition ? 1250 : 1800
+      );
 
       tl.to(container.querySelectorAll('.logo, .description, .roll-text, .dot, #glass-rim, #edge-layer, #fg-layer, .bg-layer'), {
         opacity: 0,
@@ -753,12 +760,24 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
       tl.to(container, { '--glow-red': 'rgba(120, 0, 0, 0.22)', duration: 0.14 }, 0);
 
       if (rippleCanvas) {
-        tl.to(rippleCanvas, { opacity: 0, duration: 0.22, ease: 'sine.in' }, 1.08);
+        tl.to(
+          rippleCanvas,
+          { opacity: 0, duration: compactTransition ? 0.16 : 0.22, ease: 'sine.in' },
+          compactTransition ? 0.72 : 1.08
+        );
       }
-      tl.to(waveBlack, { opacity: 1, duration: 0.3, ease: 'power2.inOut' }, 1.08);
-      tl.to(waveRed, { opacity: 0, duration: 0.24, ease: 'sine.in' }, 1.16);
+      tl.to(
+        waveBlack,
+        { opacity: 1, duration: compactTransition ? 0.22 : 0.3, ease: 'power2.inOut' },
+        compactTransition ? 0.72 : 1.08
+      );
+      tl.to(
+        waveRed,
+        { opacity: 0, duration: compactTransition ? 0.18 : 0.24, ease: 'sine.in' },
+        compactTransition ? 0.78 : 1.16
+      );
 
-      tl.set(container, { backgroundColor: '#050505' }, 1.38);
+      tl.set(container, { backgroundColor: '#050505' }, compactTransition ? 0.98 : 1.38);
     };
 
     if (enterButtons.length) {
