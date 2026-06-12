@@ -20,17 +20,17 @@ export const ResumePage: React.FC = () => {
     <div className="min-h-screen w-full bg-[#030303] text-white selection:bg-lab-red/30 selection:text-white">
       {/* Top Navigation Bar */}
       <nav className="fixed left-0 top-0 z-40 w-full border-b border-white/[0.04] bg-[#030303]/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-12">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-12">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
             <div className="h-2 w-2 rounded-full bg-lab-red shadow-[0_0_10px_rgba(220,38,38,0.6)]" />
-            <span className="font-mono text-xs uppercase tracking-[0.3em] text-white/60">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60 sm:text-xs sm:tracking-[0.3em]">
               Role Profile
             </span>
           </div>
           
           <button
             onClick={handleBackHome}
-            className="group flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
+            className="group flex h-11 shrink-0 items-center gap-1 px-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/50 transition-colors hover:text-white sm:h-auto sm:gap-2 sm:px-0 sm:text-[11px] sm:tracking-[0.2em]"
           >
             <span className="text-lab-red opacity-0 transition-opacity duration-300 group-hover:opacity-100">{'<'}</span>
             BACK HOME / 返回首页
@@ -39,11 +39,11 @@ export const ResumePage: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-6 pb-32 pt-32 lg:px-12 lg:pt-40">
+      <main className="mx-auto max-w-5xl px-5 pb-24 pt-28 sm:px-6 sm:pb-32 sm:pt-32 lg:px-12 lg:pt-40">
         
         {/* Section 1: Page Header */}
-        <header className="mb-20 border-b border-white/[0.06] pb-12">
-          <h1 className="mb-6 text-4xl font-medium uppercase tracking-[0.2em] text-white sm:text-5xl">
+        <header className="mb-16 border-b border-white/[0.06] pb-8 sm:mb-20 sm:pb-12">
+          <h1 className="mb-6 text-3xl font-medium uppercase tracking-[0.12em] text-white sm:text-5xl sm:tracking-[0.2em]">
             RESUME <span className="text-white/40">/ 简历</span>
           </h1>
           <p className="max-w-2xl font-mono text-[12px] uppercase leading-relaxed tracking-[0.15em] text-white/50">
@@ -56,7 +56,7 @@ export const ResumePage: React.FC = () => {
         </header>
 
         {/* Section 2: Target Role */}
-        <section className="mb-20">
+        <section className="mb-16 sm:mb-20">
           <h2 className="mb-8 font-mono text-sm uppercase tracking-[0.2em] text-white/70">
             TARGET ROLE <span className="text-white/30">/ 求职方向</span>
           </h2>
@@ -73,13 +73,13 @@ export const ResumePage: React.FC = () => {
         </section>
 
         {/* Section 3: Core Capability */}
-        <section className="mb-20">
+        <section className="mb-16 sm:mb-20">
           <h2 className="mb-8 font-mono text-sm uppercase tracking-[0.2em] text-white/70">
             CORE CAPABILITY <span className="text-white/30">/ 核心能力</span>
           </h2>
           <div className="grid gap-6 sm:grid-cols-2">
             {resumeData.capabilities.map((group, idx) => (
-              <div key={idx} className="border border-white/[0.04] bg-[#050505] p-6">
+              <div key={idx} className="border border-white/[0.04] bg-[#050505] p-5 sm:p-6">
                 <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-lab-red/80">
                   {group.category}
                 </h3>
@@ -97,7 +97,7 @@ export const ResumePage: React.FC = () => {
         </section>
 
         {/* Section 4: Experience */}
-        <section className="mb-20">
+        <section className="mb-16 sm:mb-20">
           <h2 className="mb-8 font-mono text-sm uppercase tracking-[0.2em] text-white/70">
             EXPERIENCE <span className="text-white/30">/ 实习经历</span>
           </h2>
@@ -131,7 +131,7 @@ export const ResumePage: React.FC = () => {
         </section>
 
         {/* Section 5: Education */}
-        <section className="mb-20">
+        <section className="mb-16 sm:mb-20">
           <h2 className="mb-8 font-mono text-sm uppercase tracking-[0.2em] text-white/70">
             EDUCATION <span className="text-white/30">/ 教育背景</span>
           </h2>
@@ -173,7 +173,7 @@ export const ResumePage: React.FC = () => {
               </div>
               <button 
                 disabled
-                className="mb-3 border border-white/10 px-6 py-2.5 font-mono text-xs uppercase tracking-widest text-white/30 cursor-not-allowed"
+                className="mb-3 min-h-11 w-full cursor-not-allowed border border-white/10 px-4 py-2.5 font-mono text-xs uppercase tracking-widest text-white/30 sm:w-auto sm:px-6"
               >
                 DOWNLOAD RESUME / 下载简历
               </button>

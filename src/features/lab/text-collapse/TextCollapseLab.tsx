@@ -39,12 +39,12 @@ export default function TextCollapseLab() {
       </div>
 
       {/* 底部控制条 */}
-      <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3">
+      <div className="absolute bottom-4 left-1/2 z-10 flex w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8 sm:w-auto sm:gap-3">
         <button
           type="button"
           onClick={() => engineRef.current?.start()}
           disabled={!canCollapse}
-          className={`inline-flex h-11 min-w-44 items-center justify-center gap-2 border px-6 text-xs font-medium uppercase tracking-[0.24em] transition-all duration-300 ${
+          className={`inline-flex h-11 min-w-0 flex-[1.25] items-center justify-center gap-2 border px-2 text-[10px] font-medium uppercase tracking-[0.14em] transition-all duration-300 sm:min-w-44 sm:flex-none sm:px-6 sm:text-xs sm:tracking-[0.24em] ${
             canCollapse
               ? 'border-lab-red/50 bg-lab-red/10 text-white hover:border-lab-red hover:bg-lab-red/20 hover:shadow-red'
               : 'cursor-not-allowed border-white/10 text-white/25'
@@ -56,7 +56,7 @@ export default function TextCollapseLab() {
           type="button"
           onClick={() => engineRef.current?.reform()}
           disabled={!canReform}
-          className={`inline-flex h-11 min-w-32 items-center justify-center gap-2 border px-6 text-xs font-medium uppercase tracking-[0.24em] transition-all duration-300 ${
+          className={`inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 border px-2 text-[10px] font-medium uppercase tracking-[0.14em] transition-all duration-300 sm:min-w-32 sm:flex-none sm:px-6 sm:text-xs sm:tracking-[0.24em] ${
             canReform
               ? 'border-amber-500/60 bg-amber-500/10 text-white hover:border-amber-400 hover:bg-amber-500/20 hover:shadow-[0_0_30px_rgba(217,160,40,0.25)]'
               : 'cursor-not-allowed border-white/10 text-white/25'
@@ -68,7 +68,7 @@ export default function TextCollapseLab() {
           type="button"
           onClick={() => engineRef.current?.reset()}
           disabled={!canReset}
-          className={`inline-flex h-11 items-center justify-center border px-5 text-xs font-medium uppercase tracking-[0.24em] transition-all duration-300 ${
+          className={`inline-flex h-11 min-w-0 flex-[0.8] items-center justify-center border px-2 text-[10px] font-medium uppercase tracking-[0.14em] transition-all duration-300 sm:flex-none sm:px-5 sm:text-xs sm:tracking-[0.24em] ${
             canReset
               ? 'border-white/20 text-white/70 hover:border-white/50 hover:text-white'
               : 'cursor-not-allowed border-white/5 text-white/15'

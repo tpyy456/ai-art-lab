@@ -1,10 +1,8 @@
 import React from 'react';
 
-const WECHAT_QR_SRC = `${import.meta.env.BASE_URL}contact/wechat-qr.png`;
-
 export const WechatQrPlaceholder: React.FC = () => {
   return (
-    <div className="relative flex aspect-square w-full max-w-[280px] flex-col items-center justify-center border border-lab-red/20 bg-[#020202] p-8">
+    <div className="relative flex aspect-square w-full max-w-[240px] flex-col items-center justify-center border border-lab-red/20 bg-[#020202] p-6 sm:max-w-[280px] sm:p-8">
       {/* Corner Brackets */}
       <div className="absolute left-0 top-0 h-6 w-6 border-l-2 border-t-2 border-lab-red/50" />
       <div className="absolute right-0 top-0 h-6 w-6 border-r-2 border-t-2 border-lab-red/50" />
@@ -22,19 +20,6 @@ export const WechatQrPlaceholder: React.FC = () => {
       <div className="absolute right-6 top-6 h-12 w-12 border-4 border-white/5" />
       <div className="absolute bottom-6 left-6 h-12 w-12 border-4 border-white/5" />
       
-      {/* Image Fallback Check (for future) */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <img 
-          src={WECHAT_QR_SRC}
-          alt="Wechat QR"
-          className="h-full w-full object-contain opacity-0"
-          onError={(e) => {
-            // Hide broken image icon if image doesn't exist yet
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      </div>
-
       {/* Status Text */}
       <div className="z-10 mt-2 text-center">
         <div className="mb-2 flex justify-center">

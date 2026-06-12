@@ -44,7 +44,7 @@ export default function AboutPage() {
             <p className="hidden text-[10px] uppercase tracking-[0.32em] text-white/30 sm:block">ABOUT / LIVING ARCHIVE</p>
           </header>
 
-          <div className="grid gap-16 py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24 items-start">
+          <div className="grid items-start gap-12 py-10 sm:gap-16 sm:py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:py-24">
             <div className="flex flex-col">
               <p className="text-[11px] font-mono uppercase tracking-[0.46em] text-lab-red mt-2">Human Layer</p>
               <h1 className="mt-6 text-4xl font-medium uppercase leading-[1.05] tracking-wide text-white sm:text-5xl lg:text-[4rem]">
@@ -53,7 +53,7 @@ export default function AboutPage() {
               </h1>
               <div className="mt-8 h-px w-12 bg-lab-red" />
 
-              <div className="mt-14 flex flex-col gap-10 lg:gap-12">
+              <div className="mt-10 flex flex-col gap-8 sm:mt-14 sm:gap-10 lg:gap-12">
                 {textBlocks.map((block) => (
                   <article key={block.title} className="group relative pl-5 sm:pl-7">
                     <div className="absolute bottom-0 left-0 top-0 w-px bg-white/10">
@@ -62,7 +62,7 @@ export default function AboutPage() {
                     <h2 className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/40 transition-colors duration-300 group-hover:text-lab-red/80">
                       {block.title}
                     </h2>
-                    <p className="mt-4 max-w-[26rem] text-sm leading-relaxed text-white/70 sm:text-base">
+                    <p className="mt-3 max-w-[26rem] text-sm leading-relaxed text-white/70 sm:mt-4 sm:text-base">
                       {block.body}
                     </p>
                   </article>

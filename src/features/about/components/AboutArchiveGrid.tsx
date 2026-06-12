@@ -11,7 +11,7 @@ const archiveItems = [
 
 function ArchiveCard({ item }: { item: typeof archiveItems[0] }) {
   return (
-    <article className="group relative w-[280px] shrink-0 cursor-pointer sm:w-[360px] lg:w-[420px]">
+    <article className="group relative w-[76vw] max-w-[280px] shrink-0 cursor-pointer sm:w-[360px] sm:max-w-none lg:w-[420px]">
       {/* Image Placeholder */}
       <div className="relative aspect-[16/9] w-full overflow-hidden border border-white/5 bg-[#0a0a0a] transition-colors duration-500 group-hover:border-white/15">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03),transparent_70%)] transition-opacity duration-500 group-hover:opacity-50" />
@@ -51,8 +51,8 @@ export default function AboutArchiveGrid() {
   const row2 = [...archiveItems].reverse().concat([...archiveItems].reverse());
 
   return (
-    <section className="py-20 sm:py-28 overflow-hidden -mx-5 sm:-mx-8 lg:-mx-14 px-5 sm:px-8 lg:px-14">
-      <div className="mb-14 flex items-end justify-between border-b border-white/10 pb-6 max-w-7xl mx-auto">
+    <section className="-mx-5 overflow-hidden px-5 py-16 sm:-mx-8 sm:px-8 sm:py-28 lg:-mx-14 lg:px-14">
+      <div className="mx-auto mb-10 flex max-w-7xl items-end justify-between border-b border-white/10 pb-6 sm:mb-14">
         <div>
           <p className="text-[10px] uppercase tracking-[0.36em] text-lab-red">Archive</p>
           <h2 className="mt-3 text-2xl font-medium uppercase tracking-[0.18em] text-white sm:text-3xl">
@@ -62,12 +62,12 @@ export default function AboutArchiveGrid() {
       </div>
 
       {/* Tracks Container */}
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-8 sm:gap-10">
         
         {/* Track 1: Left to Right */}
         <div className="group flex overflow-hidden">
           <div 
-            className="flex gap-6 w-max hover:[animation-play-state:paused] motion-reduce:!animate-none"
+            className="flex w-max gap-4 hover:[animation-play-state:paused] motion-reduce:!animate-none sm:gap-6"
             style={{ animation: 'archive-scroll-left 45s linear infinite' }}
           >
             {row1.map((item, index) => (
@@ -81,7 +81,7 @@ export default function AboutArchiveGrid() {
         {/* Track 2: Right to Left */}
         <div className="group flex overflow-hidden">
           <div 
-            className="flex gap-6 w-max hover:[animation-play-state:paused] motion-reduce:!animate-none"
+            className="flex w-max gap-4 hover:[animation-play-state:paused] motion-reduce:!animate-none sm:gap-6"
             style={{ animation: 'archive-scroll-right 45s linear infinite' }}
           >
             {row2.map((item, index) => (

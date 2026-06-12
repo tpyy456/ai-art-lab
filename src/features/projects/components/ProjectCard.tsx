@@ -9,7 +9,7 @@ interface ProjectCardProps {
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   return (
     <div 
-      className="group relative w-full border border-white/[0.06] bg-[#080808] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-lab-red/30 hover:shadow-[0_10px_30px_-15px_rgba(220,38,38,0.15)] sm:p-8 cursor-pointer"
+      className="group relative w-full cursor-pointer border border-white/[0.06] bg-[#080808] p-5 transition-all duration-500 hover:-translate-y-1 hover:border-lab-red/30 hover:shadow-[0_10px_30px_-15px_rgba(220,38,38,0.15)] sm:p-8"
       onClick={onClick}
     >
       {/* Corner Crosshairs */}
@@ -19,10 +19,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
       <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-white/20 transition-colors duration-500 group-hover:border-lab-red/60" />
 
       {/* Header */}
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 border-b border-white/[0.04] pb-6 sm:flex-row sm:items-center">
+      <div className="mb-5 flex flex-col items-start justify-between gap-4 border-b border-white/[0.04] pb-5 sm:mb-6 sm:flex-row sm:items-center sm:pb-6">
         <div>
           <p className="mb-2 font-mono text-[10px] text-lab-red/80 tracking-[0.2em]">{project.number}</p>
-          <h3 className="text-lg font-medium text-white/90 uppercase tracking-widest">{project.titleZh}</h3>
+          <h3 className="text-lg font-medium uppercase tracking-[0.08em] text-white/90 sm:tracking-widest">{project.titleZh}</h3>
           <p className="mt-1 font-mono text-[11px] text-white/40 uppercase tracking-[0.1em]">{project.titleEn}</p>
         </div>
         <div className="flex items-center">
@@ -37,7 +37,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
       </div>
 
       {/* Details Grid */}
-      <div className="grid gap-6 sm:grid-cols-[1fr_2fr]">
+      <div className="grid gap-5 sm:grid-cols-[1fr_2fr] sm:gap-6">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[10px] text-white/30 uppercase tracking-[0.2em]">Project Type / 项目类型</span>
           <p className="text-[13px] text-white/80">{project.type}</p>
@@ -60,7 +60,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
       </div>
       
       {/* View Details Prompt */}
-      <div className="mt-8 flex items-center justify-end">
+      <div className="mt-6 flex items-center justify-end sm:mt-8">
         <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 transition-colors duration-300 group-hover:text-lab-red">
           VIEW DETAILS / 查看详情
           <span className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">{'>'}</span>

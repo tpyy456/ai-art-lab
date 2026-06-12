@@ -18,14 +18,14 @@ export const RoleMatchAnalyzer: React.FC = () => {
   };
 
   return (
-    <div className="relative border border-white/[0.06] bg-[#080808] p-6 transition-colors duration-500 hover:border-lab-red/30 sm:p-8">
+    <div className="relative border border-white/[0.06] bg-[#080808] p-5 transition-colors duration-500 hover:border-lab-red/30 sm:p-8">
       {/* Corner crosshairs */}
       <div className="absolute left-0 top-0 h-2 w-2 border-l border-t border-white/20" />
       <div className="absolute right-0 top-0 h-2 w-2 border-r border-t border-white/20" />
       <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l border-white/20" />
       <div className="absolute bottom-0 right-0 h-2 w-2 border-b border-r border-white/20" />
 
-      <h3 className="mb-6 font-mono text-[13px] uppercase tracking-[0.2em] text-lab-red">
+      <h3 className="mb-6 font-mono text-xs uppercase tracking-[0.12em] text-lab-red sm:text-[13px] sm:tracking-[0.2em]">
         ROLE MATCH ANALYZER <span className="text-white/40">/ 岗位匹配分析器</span>
       </h3>
       
@@ -49,7 +49,7 @@ export const RoleMatchAnalyzer: React.FC = () => {
       <button 
         onClick={handleAnalyze}
         disabled={status === 'analyzing'}
-        className="border border-white/20 bg-white/[0.02] px-6 py-2.5 font-mono text-xs uppercase tracking-widest text-white/80 transition-colors hover:border-white/40 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-11 w-full border border-white/20 bg-white/[0.02] px-4 py-2.5 font-mono text-xs uppercase tracking-widest text-white/80 transition-colors hover:border-white/40 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-6"
       >
         {status === 'analyzing' ? 'ANALYZING...' : 'ANALYZE MATCH / 分析匹配度'}
       </button>

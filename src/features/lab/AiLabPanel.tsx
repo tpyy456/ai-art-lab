@@ -26,7 +26,7 @@ export default function AiLabPanel({ open, onClose }: Props) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[60] flex items-center justify-center px-5"
+          className="fixed inset-0 z-[60] flex items-center justify-center px-4 py-4 sm:px-5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -37,7 +37,7 @@ export default function AiLabPanel({ open, onClose }: Props) {
 
           {/* 系统窗口面板 */}
           <motion.div
-            className="relative w-full max-w-2xl border border-lab-red/30 bg-[#070708] shadow-[0_0_60px_rgba(0,0,0,0.6)]"
+            className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto border border-lab-red/30 bg-[#070708] shadow-[0_0_60px_rgba(0,0,0,0.6)] sm:overflow-visible"
             initial={{ opacity: 0, y: 16, clipPath: 'inset(0 0 100% 0)' }}
             animate={{ opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }}
             exit={{ opacity: 0, y: 10 }}
@@ -50,7 +50,7 @@ export default function AiLabPanel({ open, onClose }: Props) {
             <span className="pointer-events-none absolute -bottom-px -right-px h-4 w-4 border-b border-r border-lab-red/60" />
 
             {/* 标题栏 */}
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5 sm:px-6 sm:py-4">
               <div className="flex items-center gap-3">
                 <span className="h-1.5 w-1.5 rounded-full bg-lab-red" />
                 <span className="text-xs uppercase tracking-[0.3em] text-white">AI LAB</span>
@@ -60,7 +60,7 @@ export default function AiLabPanel({ open, onClose }: Props) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close panel"
-                className="text-[10px] uppercase tracking-[0.28em] text-white/50 transition-colors duration-300 hover:text-lab-red"
+                className="min-h-11 px-1 text-[10px] uppercase tracking-[0.2em] text-white/50 transition-colors duration-300 hover:text-lab-red sm:min-h-0 sm:px-0 sm:tracking-[0.28em]"
               >
                 Close ✕
               </button>
@@ -78,15 +78,15 @@ export default function AiLabPanel({ open, onClose }: Props) {
                     onClick={() => {
                       if (active && m.to) navigateWithScan(m.to);
                     }}
-                    className={`group flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-300 ${
+                    className={`group flex w-full items-center justify-between px-4 py-4 text-left transition-colors duration-300 sm:px-6 sm:py-5 ${
                       active ? 'hover:bg-lab-red/[0.06]' : 'cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex min-w-0 items-start gap-3 sm:gap-4">
                       <span className="mt-1 shrink-0 text-[10px] uppercase tracking-[0.24em] text-lab-muted">{m.code}</span>
                       <div>
                         <p
-                          className={`text-base font-medium uppercase tracking-[0.16em] transition-colors duration-300 ${
+                          className={`text-sm font-medium uppercase tracking-[0.12em] transition-colors duration-300 sm:text-base sm:tracking-[0.16em] ${
                             active ? 'text-white group-hover:text-lab-red' : 'text-white/35'
                           }`}
                         >
