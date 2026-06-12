@@ -1,5 +1,5 @@
 ---
-status: live
+status: complete
 type: plan
 module: mobile-responsive-audit
 last_updated: 2026-06-12
@@ -17,21 +17,23 @@ last_updated: 2026-06-12
 - 任务开始时工作区：干净
 - 任务开始时本地 HEAD：`6d7a3c3`
 - 任务开始时远程 `origin/main`：`39540eb`
-- 任务开始时本地领先远程 1 个尚未 push 的 Intro 移动端优化 commit
-- 当前响应式修复尚未提交，等待最终 commit 和 push
+- 响应式修复 commit：`a3c450a fix(mobile): improve responsive layout across pages`
+- `6d7a3c3` 与 `a3c450a` 均已 push
 
-## 3. 当前本地 HEAD
+## 3. 当前本地应用版本
 
-- `6d7a3c3 fix(mobile): improve intro startup and performance`
+- Intro 移动端优化：`6d7a3c3 fix(mobile): improve intro startup and performance`
+- 全站响应式修复：`a3c450a fix(mobile): improve responsive layout across pages`
 
 ## 4. 当前远程线上版本
 
-- `origin/main`: `39540eb fix(deploy): resolve public asset paths for github pages`
+- 已部署应用 commit：`a3c450a`
+- GitHub Actions run：`27402737945`，结论 `success`
 - 线上地址：`https://tpyy456.github.io/ai-art-lab/`
 
 ## 5. 本地是否领先远程
 
-是。提交本轮修复前，本地仍至少领先远程 `6d7a3c3` 这 1 个 commit；本轮响应式修改仍在工作区。
+应用代码没有未推送提交。最终仅需提交并 push 本文档的完成状态。
 
 ## 6. 允许修改文件
 
@@ -93,12 +95,11 @@ last_updated: 2026-06-12
 - production preview 使用 `/ai-art-lab/` base 正常。
 - 唯一控制台 404 为本地 preview 根路径的 `favicon.ico`，与页面资源和本轮修改无关。
 - TypeScript 检查与 Vite build 已通过，2014 modules transformed。
+- GitHub Actions Pages workflow 已成功部署 `a3c450a`。
+- 线上 `390x844`、`375x812`、`430x932` 六个路由均无横向溢出。
+- GitHub Pages 子路由直接访问会先返回预期的 `404.html` 文档状态，但 React 应用正常加载对应路由。
+- 线上 Intro、Hero、AI LAB 面板、扫描跳转、Projects 弹窗、Resume 分析、Contact 复制、Text Collapse COLLAPSE/RESET 均已通过。
 
 ## 10. 中断后的继续位置
 
-1. 运行 `git diff --check` 与修改文件边界检查。
-2. 提交 `fix(mobile): improve responsive layout across pages`。
-3. push `main`，让 `6d7a3c3` 和本轮 commit 一并上线。
-4. 等待 GitHub Actions Pages workflow 成功。
-5. 在线验证六个路由、移动端横向溢出、Intro、AI LAB、Projects 弹窗、Resume 分析、Contact 复制和 Text Collapse 控件。
-6. 部署完成后，将本文档状态更新为最终线上验证结果。
+本轮任务已完成，没有待续实现。后续任务应从 `a3c450a` 及其后的文档收尾 commit 开始，不要回退移动端 Intro 或全站响应式修复。
