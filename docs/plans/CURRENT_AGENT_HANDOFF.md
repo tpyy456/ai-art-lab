@@ -1,5 +1,5 @@
 ---
-status: live
+status: complete
 type: plan
 module: mobile-local-online-reaudit
 last_updated: 2026-06-12
@@ -14,8 +14,8 @@ last_updated: 2026-06-12
 ## 2. 当前 Git 状态
 
 - 分支：`main`
-- 当前 HEAD：`991373888d1352a0191637ea9aff671f7a064f0e`
-- 当前 `origin/main`：`991373888d1352a0191637ea9aff671f7a064f0e`
+- 本轮应用修复 commit：`29b712fd13e3b199bdbc7c3ee7a5c3d03be58333`
+- 应用修复已 push 到 `origin/main`
 - 本地与远程：同步
 - 本轮开始时工作区：干净
 - 远程：`https://github.com/tpyy456/ai-art-lab.git`
@@ -98,11 +98,22 @@ last_updated: 2026-06-12
   - 三组移动视口均无 body 级横向溢出。
 - 已重新运行 TypeScript `tsc --noEmit` 与 Vite production build，均通过；当前本地新主包为 `index-zgKplmYl.js`。
 - 当前 production preview 交互验证通过：Projects 弹窗、Resume JD 分析、Contact 复制、Text Collapse 控件均正常。
+- GitHub Pages workflow `27408396284` 已完成，结论 `success`。
+- 线上 HTML 已从旧主包 `index-5bC4mJ52.js` 切换到本轮主包 `index-zgKplmYl.js`，不是浏览器继续加载旧部署。
+- 线上 390x844、375x812、430x932 实测：
+  - `?intro=1` 均能强制显示 Intro。
+  - ENTER SYSTEM 到 Hero 完全可见约 1.29 秒。
+  - 同一 session 再访问普通首页仍会跳过 Intro，符合既有产品规则。
+  - 均无 body 级横向溢出。
+- 线上 About、Projects、Resume、Contact、Text Collapse 子路由均加载新主包且布局正常；GitHub Pages 直刷子路由的主文档 HTTP 404 由既有 `404.html` fallback 接管。
+- 线上首页剩余明确 404 为 `/audio/home-ambient.mp3`。这是 AudioDock 的既有缺失资源问题，不在本轮允许修改范围内。
 
 ## 7. 中断后的继续位置
 
-1. 提交 `App.tsx`、`IntroOverlay.tsx` 和本交接文档。
-2. push 到 `origin/main` 并等待 GitHub Pages workflow 完成。
-3. 确认线上 HTML 主包从旧的 `index-5bC4mJ52.js` 更新为本轮新 hash。
-4. 在线上重新验证三组移动视口、`?intro=1`、正常 sessionStorage 跳过逻辑和入口导航。
-5. 最终更新本交接文档为完成状态；本地 5173 dev server 可保留供用户查看。
+本轮任务已完成。下一个 Agent 应从 `29b712f` 及其后的文档收尾提交继续，不要回退移动端 Intro 时序修复。
+
+后续若继续移动端质量优化，优先单独处理以下未纳入本轮的事项：
+
+1. `AudioDock` 对不存在的 `/audio/home-ambient.mp3` 请求。
+2. GitHub Pages BrowserRouter 子路由直接刷新返回 404 文档状态的问题。
+3. Navbar 与 Text Collapse 顶部返回入口在移动端小于 44px 的触控面积。
