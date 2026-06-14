@@ -624,3 +624,172 @@ public/david.png
 ## 15. 当前状态一句话总结
 
 当前项目是一个已可运行、已构建验证、已完成首屏高冲击视觉和核心交互的 Vite + React + Tailwind 首页原型，适合继续扩展为完整个人作品集网站。
+
+## 16. 腾讯云香港生产部署交接（2026-06-14）
+
+### 16.1 任务目标
+
+将当前项目部署到腾讯云轻量应用服务器：
+
+- 地区：中国香港三区
+- 公网 IP：`43.132.178.15`
+- 系统：Ubuntu
+- 首选 SSH 用户：`ubuntu`
+- 生产 Web 服务：Caddy
+- 当前访问方式：标准入口 `http://43.132.178.15`；国内线路临时备用入口 `http://43.132.178.15:8080/`
+- 前端生产目录：`/var/www/my-site/frontend/dist`
+
+当前阶段只部署前端静态站，同时为未来后端预留：
+
+- `/var/www/my-site/backend`
+- `/var/www/my-site/data`
+- `/var/www/my-site/deploy`
+- Caddy `/api/*` 反向代理结构
+
+### 16.2 允许修改范围
+
+- 更新本交接文档。
+- 执行 `npm install` 和 `npm run build`。
+- 仅修复阻止部署或生产构建的配置问题。
+- 在服务器安装 Git、curl、unzip、Caddy 和 Node.js 20/22 LTS。
+- 创建 `/var/www/my-site` 目录结构。
+- 从当前 Git 远端 clone，或在 clone 不适用时使用 scp/rsync。
+- 发布 `dist`、配置 Caddy、检查防火墙并完成部署验证。
+
+### 16.3 禁止修改范围
+
+- 不修改网站视觉、动效、页面内容或交互逻辑。
+- 不为部署重构项目。
+- 不使用 `vite preview` 作为生产服务。
+- 不安装宝塔、WordPress、LAMP 或 Docker。
+- 当前不开发后端，不配置后端反向代理。
+- 当前没有域名，不配置 HTTPS。
+- 不盲猜 SSH 用户名或其他服务器信息。
+- 不把服务器密码、私钥、API Key 或其他密钥写入项目文件、Git、日志或文档。
+
+### 16.4 部署步骤
+
+1. 本地运行 `npm install` 和 `npm run build`，确认 `dist/index.html`。
+2. 使用 `ssh ubuntu@43.132.178.15` 登录；密码只由用户在交互式终端手动输入。
+3. 执行 `lsb_release -a`、`whoami`、`pwd` 和 `sudo apt update`。
+4. 安装 Git、curl、unzip、Caddy 和 Node.js 20/22 LTS，检查版本。
+5. 创建 `/var/www/my-site/{frontend,backend,data,deploy}` 并授予登录用户所有权。
+6. 使用已确认远端 `https://github.com/tpyy456/ai-art-lab.git` 拉取项目。
+7. 在服务器执行 `npm install` 和 `npm run build`，把构建产物放到 `/var/www/my-site/frontend/dist`。
+8. 配置并校验 Caddy，重载服务。
+9. 检查 80 端口、UFW 和腾讯云轻量服务器防火墙。
+10. 使用 curl 和真实浏览器验证首页、资源、刷新、移动端和控制台。
+
+### 16.5 当前 Caddy 目标配置
+
+```caddyfile
+:80, :8080 {
+    root * /var/www/my-site/frontend/dist
+    try_files {path} /index.html
+    file_server
+}
+```
+
+必须保留 `try_files {path} /index.html`，用于 React Router 刷新回退。
+
+### 16.6 未来后端接入方案
+
+- 优先使用 Node.js + Express 或 Hono。
+- 后端只监听 `127.0.0.1:3001`。
+- 使用 PM2 管理后端进程。
+- API Key 仅放服务器后端 `.env`，不得进入前端或 Git。
+- SQLite 或其他数据文件放在 `/var/www/my-site/data`。
+- Caddy 后续可改为：
+
+```caddyfile
+:80 {
+    handle /api/* {
+        reverse_proxy 127.0.0.1:3001
+    }
+
+    handle {
+        root * /var/www/my-site/frontend/dist
+        try_files {path} /index.html
+        file_server
+    }
+}
+```
+
+### 16.7 当前进度
+
+- [x] 确认真实项目根目录为 `C:\Users\acer\Desktop\个站`
+- [x] 更新项目根目录 `AGENT_HANDOFF.md`
+- [x] 确认技术栈与构建脚本
+- [x] 确认 Git 远端为 `https://github.com/tpyy456/ai-art-lab.git`
+- [x] 本地执行 `npm install`
+- [x] 本地执行 `npm run build`
+- [x] 确认新生成的 `dist/index.html`
+- [x] 修复腾讯云根路径与 GitHub Pages 子路径的构建配置冲突
+- [x] 通过腾讯云 OrcaTerm 免密登录服务器
+- [x] 使用临时部署密钥建立后台 SSH
+- [x] 检查并安装服务器环境
+- [x] 创建服务器部署目录
+- [x] clone 并在服务器构建项目
+- [x] 配置并启动 Caddy
+- [x] 检查端口与防火墙
+- [x] curl 验证
+- [x] 浏览器真实验证
+- [x] 国内多节点对比测试并启用 8080 备用入口
+
+### 16.8 当前验证结果
+
+- 项目工作树在部署文档更新前为干净状态。
+- `package.json` 的生产构建脚本为 `tsc --noEmit && vite build`。
+- 本地使用 Node.js `v20.12.2`、npm `10.5.0` 完成依赖安装。
+- `npm install` 成功；审计报告包含 3 个 high 风险项，本次未执行可能产生破坏性升级的 `npm audit fix --force`。
+- 默认 `npm run build` 成功：Vite `v6.4.2`，转换 2014 个模块，生成 `dist/index.html`。
+- 腾讯云默认构建使用根路径 `/assets/...`；GitHub Pages 模式使用 `/ai-art-lab/assets/...`。
+- GitHub Pages 工作流已改为 `npm run build -- --mode github-pages`，保留原站点子路径发布。
+- 腾讯云控制台确认实例 `ai-art-lab-hk` 的实际公网 IP 是 `43.132.178.15`；原始任务中的 `43.132.78.15` 少了一个 `1`，不是该账号下的目标实例。
+- 服务器系统为 Ubuntu 24.04.4 LTS，SSH 用户为 `ubuntu`，sudo 免密可用。
+- 已安装 Node.js `v22.22.3`、npm `10.9.8`、Caddy `2.6.2`；Git `2.43.0` 已存在。
+- 已创建 `/var/www/my-site/{frontend,backend,data,deploy}`，仓库位于 `/var/www/my-site/repo`。
+- 服务器 `npm install` 和 `npm run build` 成功，Vite 转换 2014 个模块，`/var/www/my-site/frontend/dist/index.html` 存在。
+- `/etc/caddy/Caddyfile` 校验通过，`caddy.service` 为 `active (running)`，Caddy 监听 `*:80` 和 `*:8080`。
+- UFW 状态为 `inactive`；公网 80 端口已通过实际访问验证。
+- `curl -I http://127.0.0.1` 返回 `HTTP/1.1 200 OK`。
+- `curl -I http://43.132.178.15` 返回 `HTTP/1.1 200 OK`。
+- `curl -I http://43.132.178.15:8080/` 返回 `HTTP/1.1 200 OK`。
+- `curl -I http://127.0.0.1/projects` 返回 `HTTP/1.1 200 OK`，React Router 刷新回退有效。
+- 主 JS `/assets/index-BCQJCeok.js` 返回 `HTTP/1.1 200 OK`。
+- 浏览器桌面 `1280 x 720` 验证：首页互动开场可进入，主视觉和页面内容正常显示。
+- 浏览器直接访问并刷新 `/projects` 后内容正常，不出现 404。
+- 浏览器移动端 `390 x 844` 验证：页面正常显示，`scrollWidth <= innerWidth`，没有横向溢出。
+- 浏览器控制台未发现 error 或 warn。
+- 腾讯云轻量服务器防火墙已放行 TCP 8080；国内 107 个探测节点访问 8080 全部返回 200，0 超时（电信 37/37、移动 39/39、联通 14/14、多线 17/17）。对照测试中 80 端口 129 次探测有 8 个节点超时，因此当前大陆访问可临时优先使用 8080。
+- 浏览器打开并刷新 `http://43.132.178.15:8080/` 正常，页面标题、内容、JS 和 CSS 均加载成功，未发现站点资源控制台错误。
+- 页面现有 UI 显示 `AUDIO SOURCE MISSING`；这是现有站点内容/资源状态，本次遵守限制未修改页面逻辑。
+- 本次临时部署私钥、公钥和路径记录已从本机删除，正确服务器 `43.132.178.15` 的临时公钥授权也已撤销。
+- 服务器 clone 已恢复为干净 Git 状态；当前线上 `dist` 不受恢复操作影响。
+
+### 16.9 未完成事项
+
+- 当前没有域名，因此仅提供 HTTP IP 访问，尚未配置 HTTPS。
+- 香港到中国大陆的跨境线路存在运营商和地区差异；8080 当前多节点测试更稳定，但属于临时备用方案。
+- npm 审计仍报告 3 个 high 风险项；未执行可能引发破坏性升级的 `npm audit fix --force`。
+- Ubuntu 提示有 105 个可升级软件包，本次未做全系统升级。
+- 后端仅预留目录和接入方案，未开发、未启动。
+- 绑定域名前确认腾讯云防火墙允许 TCP 443。
+- 原始误填 IP `43.132.78.15` 会在 SSH 握手前主动断开，无法确认用户此前是否曾在该主机写入临时公钥；若该 IP 也是用户资产，应通过对应控制台检查 `~/.ssh/authorized_keys` 并删除注释为 `codex-temp-deploy-20260614` 的行。
+- 服务器密码曾被用户发送到聊天中，应在腾讯云控制台尽快重置；新密码不得写入项目或文档。
+
+### 16.10 下一步
+
+1. 当前国内访问优先尝试 `http://43.132.178.15:8080/`。绑定域名时，将域名 A 记录指向 `43.132.178.15`，腾讯云防火墙放行 TCP 80/443，并把 Caddy 站点地址从 `:80, :8080` 改为域名，由 Caddy 自动申请 HTTPS 证书；如仍有跨境丢包，再评估腾讯云香港优选流量包或更适合大陆访问的线路。
+2. 增加后端时，在 `/var/www/my-site/backend` 使用 Node.js + Express 或 Hono，监听 `127.0.0.1:3001`，使用 PM2 管理进程，数据放 `/var/www/my-site/data`，密钥仅放后端 `.env`。
+
+### 16.11 主视觉图片复核（2026-06-14）
+
+- “页面 DOM 中没有 `<img>`”不是主视觉图片未加载的证据。`DivineDavidCanvas` 使用 `new Image()` 在内存中加载 `david-source.png`，采样后绘制到 `<canvas>`，设计上不会生成可见 `<img>` 节点。
+- 腾讯云 80 与 8080 入口的 `/david-source.png` 均返回 `HTTP 200`、`Content-Type: image/png` 和 `Content-Length: 1685412`。
+- 服务器图片与本地 `public/david-source.png` 的 SHA-256 均为 `76310F267300CA79770BC636CF6A5F16E528757AA33EB86E731E1AA41E77451C`。
+- 线上生产主包包含默认地址 `/david-source.png`；腾讯云根路径构建下该地址正确。
+- 浏览器实测首页存在 Divine David Canvas，尺寸正常，主视觉大卫已经绘制显示。
+- 因此本次复核没有修改大卫视觉、Canvas 绘制算法或图片资源。
+- 本地 TypeScript 检查与 Vite production build 再次通过，产物主包为 `index-BCQJCeok.js`，与腾讯云当前线上主包及哈希一致。
+- 当前会话无法直接 SSH 登录服务器：临时部署密钥已经撤销，非交互登录返回 `Permission denied (publickey,password)`。由于线上产物已与本地最新构建一致，没有重复覆盖服务器文件。

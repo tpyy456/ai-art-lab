@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  base: '/ai-art-lab/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'github-pages' ? '/ai-art-lab/' : '/',
   plugins: [react()],
-});
+}));
