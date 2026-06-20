@@ -11,7 +11,8 @@ type Point = {
   z?: number;
 };
 
-const DEFAULT_SOURCE = `${import.meta.env.BASE_URL}david-source.png`;
+const DEFAULT_DESKTOP_SOURCE = `${import.meta.env.BASE_URL}david-source.png`;
+const DEFAULT_MOBILE_SOURCE = `${import.meta.env.BASE_URL}david-source-mobile.webp`;
 const COLLAPSE_MODE: 'auto' | 'cursor' | 'center' = 'auto';
 const MAX_CANVAS_DPR = 1.35;
 const MIN_USABLE_CANVAS_SIZE = 160;
@@ -56,7 +57,7 @@ function colorMix(gray: number, redMix: number, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDavidCanvasProps) {
+function DivineDavidCanvas({ className = '', source }: DivineDavidCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -68,6 +69,8 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
 
     const canvas: HTMLCanvasElement = canvasElement;
     const ctx: CanvasRenderingContext2D = renderingContext;
+    const useMobileSource = window.matchMedia?.('(max-width: 760px), (pointer: coarse)').matches;
+    const sourceUrl = source || (useMobileSource ? DEFAULT_MOBILE_SOURCE : DEFAULT_DESKTOP_SOURCE);
 
     let width = 1;
     let height = 1;
@@ -313,6 +316,7 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
       return new Promise((resolve, reject) => {
         const image = new Image();
         image.crossOrigin = 'anonymous';
+        image.decoding = 'async';
         image.onload = () => resolve(image);
         image.onerror = reject;
         image.src = url;
@@ -321,7 +325,7 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
 
     async function loadDavidSource() {
       try {
-        return await loadImage(source);
+        return await loadImage(sourceUrl);
       } catch {
         return createFallbackDavidSource();
       }
@@ -1196,6 +1200,46 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
       ctx.globalCompositeOperation = 'source-over';
     }
 
+    function drawLoadingFigure(time: number, state: any) {
+      const bounds = getDavidFrameBounds();
+      const cx = bounds.left + bounds.width * 0.52 + globalPointer.x * bounds.width * 0.035;
+      const cy = bounds.top + bounds.height * 0.52 + globalPointer.y * bounds.height * 0.025;
+      const scale = Math.min(bounds.width, bounds.height) * (width < 760 ? 0.58 : 0.62);
+      const breath = 0.72 + Math.sin(time * 0.0022) * 0.14;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.strokeStyle = `rgba(210, 42, 38, ${0.12 + breath * 0.08})`;
+      ctx.lineWidth = Math.max(0.8, state.scale * 0.0024);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - scale * 0.34, scale * 0.2, scale * 0.07, -0.08, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const scan = ctx.createRadialGradient(cx, cy - scale * 0.08, 0, cx, cy - scale * 0.08, scale * 0.72);
+      scan.addColorStop(0, `rgba(230, 230, 230, ${0.035 + breath * 0.018})`);
+      scan.addColorStop(0.44, `rgba(198, 38, 35, ${0.025 + breath * 0.015})`);
+      scan.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = scan;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - scale * 0.02, scale * 0.42, scale * 0.62, 0.04, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = `rgba(230, 230, 230, ${0.13 + breath * 0.06})`;
+      ctx.lineWidth = Math.max(0.7, state.scale * 0.0018);
+      for (let i = 0; i < 15; i++) {
+        const t = i / 14;
+        const angle = -0.9 + t * 1.85 + Math.sin(time * 0.001 + i) * 0.02;
+        const r = scale * (0.2 + t * 0.22);
+        const x0 = cx + Math.cos(angle) * r * 0.32;
+        const y0 = cy - scale * 0.25 + t * scale * 0.62;
+        ctx.beginPath();
+        ctx.moveTo(x0 - Math.sin(angle) * scale * 0.08, y0);
+        ctx.lineTo(x0 + Math.cos(angle) * scale * 0.12, y0 + Math.sin(angle) * scale * 0.035);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     function draw(time: number) {
       if (disposed) {
         return;
@@ -1234,6 +1278,8 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
           drawBody(time, state, delta, interaction.chargeLevel);
           drawHalo(time, state, interaction.chargeLevel);
           drawChargeCore(time, interaction.chargeLevel);
+        } else {
+          drawLoadingFigure(time, state);
         }
       });
 
@@ -1529,6 +1575,12 @@ function DivineDavidCanvas({ className = '', source = DEFAULT_SOURCE }: DivineDa
     canvas.addEventListener('pointercancel', handlePointerUp);
 
     async function init() {
+      if (resizeCanvas() && !animationId) {
+        setChargeCenter();
+        lastFrameTime = 0;
+        animationId = requestAnimationFrame(draw);
+      }
+
       currentSource = await loadDavidSource();
       if (disposed) {
         return;

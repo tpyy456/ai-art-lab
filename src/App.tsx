@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from './features/home';
@@ -25,6 +25,8 @@ const sections: { label: string; sub: string; lab?: boolean; to?: string }[] = [
 // 本标签页是否已完成开场，存进 sessionStorage，避免从 LAB 返回首页时重播 intro。
 // 新标签页 / 清除 sessionStorage 后仍会正常播放开场。
 const INTRO_DONE_KEY = 'tpy-intro-complete';
+const DAVID_DESKTOP_SOURCE = `${import.meta.env.BASE_URL}david-source.png`;
+const DAVID_MOBILE_SOURCE = `${import.meta.env.BASE_URL}david-source-mobile.webp`;
 
 function readIntroDone() {
   try {
@@ -44,6 +46,27 @@ function HomeRoute() {
   const [introComplete, setIntroComplete] = useState(readIntroDone);
   const [isMobileIntro] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [labOpen, setLabOpen] = useState(false);
+
+  useEffect(() => {
+    const useMobileSource = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    const href = useMobileSource ? DAVID_MOBILE_SOURCE : DAVID_DESKTOP_SOURCE;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = href;
+    if (href.endsWith('.webp')) {
+      link.type = 'image/webp';
+    }
+    document.head.appendChild(link);
+
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = href;
+
+    return () => {
+      link.remove();
+    };
+  }, []);
 
   const handleIntroComplete = () => {
     try {

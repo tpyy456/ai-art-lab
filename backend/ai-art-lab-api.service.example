@@ -1,0 +1,17 @@
+[Unit]
+Description=AI Art Lab Resume Match API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/my-site/backend
+EnvironmentFile=/var/www/my-site/backend/.env
+ExecStart=/usr/bin/node /var/www/my-site/backend/server.js
+Restart=always
+RestartSec=3
+User=ubuntu
+Group=ubuntu
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
