@@ -9,19 +9,24 @@ last_updated: 2026-06-24
 
 ## 1. 当前任务
 
-本轮只进行 Open Design / GitHub 外部工具与 `creative-interaction-lab` 的隔离读取、安装评估和规划。
+本轮完成 Open Design portable 的隔离安装、Codex CLI 选择、`creative-interaction-lab` 工作目录授权，以及项目根目录文件整理。
 
 本轮不是正式接入主站，不迁移 demo，不修改现有 Web 实验室 / AI LAB，不改变页面、路由、构建或服务器配置。
 
 ## 2. 当前 Git 状态
 
 - 分支：`main`
-- HEAD：`2379f06e26388731f91a2c33edcf824226ab7229`
-- HEAD 摘要：`2379f06 feat(resume): add backend match api and mobile david preload`
+- 本轮已提交文档基线：`b4a3ba3 docs: finalize opendesign integration assessment`
+- 本轮文件整理提交：以本文件所在的最新 Git HEAD 为准。
 - `origin/main`：`2379f06e26388731f91a2c33edcf824226ab7229`
-- 本地主分支与 `origin/main` 同步。
-- 工作区存在未跟踪目录：`探索/`
-- `探索/` 内包含外部研究材料与 `creative-interaction-lab`；本轮将其视为用户提供的隔离资料，只读审查，不删除、不移动、不直接整体提交。
+- 本轮提交完成后，本地主分支领先 `origin/main` 2 个 commit；本轮没有 push。
+- 原未跟踪目录 `探索/` 已完成无损整理并移除。
+- 外部实验库现位于 `external/creative-interaction-lab/`。
+- 早期研究材料现位于 `external/interaction-research/`。
+- 原 `两个demo/` 已整理为 `external/source-demos/`。
+- 原 `c参考图片/` 已整理为 `external/visual-references/`。
+- 根目录简历 PDF 已整理为 `docs/assets/resume/谭培洋简历-AI训练师-新版.pdf`。
+- `external/README.md` 是可提交的目录索引；大型外部内容由 `.gitignore` 隔离。
 
 ## 3. 当前线上部署状态
 
@@ -86,9 +91,9 @@ last_updated: 2026-06-24
 
 ## 8. `creative-interaction-lab` 位置和用途
 
-- 当前定位：`探索/creative-interaction-lab/`
-- Git 状态：位于未跟踪的 `探索/` 目录中，没有参与主站提交。
-- 当前统一预览候选：`探索/creative-interaction-lab/visible-preview-v6.html`
+- 当前定位：`external/creative-interaction-lab/`
+- Git 状态：外部实验内容被 `.gitignore` 隔离，没有参与主站提交。
+- 当前统一预览候选：`external/creative-interaction-lab/visible-preview-v6.html`
 - 已发现 README、HANDOFF、V6 rescue handoff、迁移说明、交互分析和多版预览文件。
 - README 与交接材料称 v6 为 35 个 demo 的纯静态 HTML 稳定预览。
 - 它是外部独立交互实验库，不是当前正式 AI LAB。
@@ -102,14 +107,20 @@ last_updated: 2026-06-24
 - 已通过 GitHub 官方仓库和 Release 页面核验。
 - 官方桌面版为 Windows x64 原生程序，不需要 Node、pnpm 或源码 clone。
 - 官方声明 local-first、no telemetry，许可证为 Apache-2.0。
-- 当前只评估和安装 portable，不安装 MCP、不修改 Codex 配置。
+- portable 已下载、解压并成功启动。
+- Open Design 已识别并选择 `Codex CLI 0.142.0`。
+- Open Design 工作目录已设置为 `external/creative-interaction-lab/`，没有选择主站根目录。
+- 没有安装 MCP，没有向 Open Design 输入邮箱、Token 或 API Key，也没有执行生成或应用修改。
 
 ## 10. 隔离安装状态
 
-- 尚未 clone 或安装 Open Design；文档收口后进入 portable 下载与启动阶段。
-- 目标安装目录：`C:\Users\acer\Desktop\tools\open-design-0.11.0\`。
+- portable zip：`C:\Users\acer\Downloads\open-design-0.11.0-win-x64-portable.zip`
+- SHA256：`0AB74CD05ACB61F2051C479B861321B1A07FE4160609190D4BD9AD4A6287190D`
+- 安装目录：`C:\Users\acer\Desktop\tools\open-design-0.11.0\`
+- 主程序：`C:\Users\acer\Desktop\tools\open-design-0.11.0\Open Design.exe`
+- Codex CLI：`C:\Users\acer\.local\bin\codex.exe`
 - 安装目录位于主站仓库之外，不进入 Git。
-- 不使用 setup.exe，除非 portable 被实际证明无法使用。
+- 未使用 setup.exe。
 - 不修改根 `package.json`、根 `package-lock.json`，不把工具放进 `src/`。
 
 ## 11. 本轮修改边界
@@ -119,7 +130,8 @@ last_updated: 2026-06-24
 - 读取项目和外部实验库。
 - 更新本文件。
 - 新增 `docs/plans/opendesign-integration-assessment.md`。
-- 在明确定位 Open Design 后，使用 `tools/opendesign/` 或 `external/opendesign/` 做隔离 clone / 安装 / smoke test。
+- 在项目外安装 Open Design portable。
+- 整理外部实验、参考图片、原始 demo 与文档资产。
 
 禁止：
 
@@ -135,7 +147,7 @@ last_updated: 2026-06-24
 
 1. 读取本轮任务说明。
 2. 核对 Git 分支、HEAD、`origin/main` 和工作区状态。
-3. 识别未跟踪的 `探索/creative-interaction-lab/`。
+3. 识别并整理原 `探索/creative-interaction-lab/`。
 4. 读取主站技术文档、`src/App.tsx`、正式 AI LAB、Text Collapse、`public/` 和 `backend/`。
 5. 读取外部实验库 README、交接、救援报告、交互分析和迁移说明。
 6. 确认 `visible-preview-v6.html` 存在。
@@ -149,21 +161,26 @@ last_updated: 2026-06-24
 8. 临时静态服务已停止。
 9. 已联网核验 Open Design 官方仓库、v0.11.0 Release 和 Windows portable 资产。
 10. 已新增并收口 `docs/plans/opendesign-integration-assessment.md`。
+11. 已下载并校验 Open Design portable zip。
+12. 已解压并成功启动 `Open Design.exe`。
+13. 已让 Open Design 识别并选择 `Codex CLI 0.142.0`。
+14. 已将 Open Design 工作目录限制为 `external/creative-interaction-lab/`。
+15. 已整理项目根目录中的外部 demo、参考图片、实验库、研究材料与简历 PDF。
 
-待完成：
+最终验证：
 
-1. 最终确认文档阶段没有修改 `src/`、根依赖与部署配置。
-2. 提交文档收口 commit，不纳入未跟踪的 `探索/`，不 push。
-3. 下载并解压 Open Design portable 到项目外目录。
-4. 启动验证 Open Design。
-5. 整理项目根目录的外部研究资料：优先把未跟踪的 `探索/` 归档到清晰的 `external/` 结构；不移动已被历史文档广泛引用的 `两个demo/` 与 `c参考图片/`，除非后续单独确认。
-6. 运行主站 build，证明整理与外部安装没有污染正式构建。
+1. `git diff -- src package.json package-lock.json vite.config.ts .github` 为空。
+2. TypeScript `tsc --noEmit` 通过。
+3. Vite 6.4.2 production build 通过，共转换 2014 个模块。
+4. Open Design 程序、zip 与 Codex CLI 均位于主站仓库外。
+5. `external/` 仅提交目录索引，四类大型本地资料继续被 `.gitignore` 隔离。
+6. 本轮没有 push。
 
 ## 13. 如果中断，下一个 Agent 从哪里继续
 
 1. 先读本文件与 `docs/plans/opendesign-integration-assessment.md`（如果已创建）。
-2. 执行 `git status --short --branch`，保留并尊重未跟踪的 `探索/`。
-3. 从只读审查 `探索/creative-interaction-lab/README.md`、`HANDOFF.md`、`HANDOFF_CODEX_V6_RESCUE.md` 和 `visible-preview-v6.html` 继续。
-4. Open Design portable 若尚未安装，从官方 v0.11.0 portable zip 继续，不运行 installer。
-5. 文件管理只处理明确安全的未跟踪资料；不要删除或擅自移动 `两个demo/`、`c参考图片/`。
+2. 执行 `git status --short --branch`，确认 `external/` 仅由 `README.md` 进入 Git。
+3. 确认 Open Design 仍显示 `本地 CLI · Codex CLI · 默认`，工作目录仍为 `creative-interaction-lab`。
+4. 如要继续筛选 demo，只在 Open Design 中读取 `external/creative-interaction-lab/`，不要选择主站根目录，不执行自动应用修改。
+5. 外部资料已归档到 `external/`；不要删除 `source-demos/`、`visual-references/` 或实验库内容。
 6. 不修改 `src/`、AI LAB、主站依赖或部署配置。

@@ -1,5 +1,5 @@
 ---
-status: draft
+status: completed
 type: assessment
 module: opendesign-and-creative-interaction-lab
 last_updated: 2026-06-24
@@ -14,12 +14,13 @@ last_updated: 2026-06-24
 当前结论：
 
 - 主站已经有正式 Web 实验室 / AI LAB，不能被外部实验库覆盖。
-- 外部实验库位于 `探索/creative-interaction-lab/`，目前是未跟踪的隔离资料，没有参与主站构建。
+- 外部实验库已整理到 `external/creative-interaction-lab/`，由 `.gitignore` 隔离，没有参与主站构建。
 - `visible-preview-v6.html` 是当前外部实验库的稳定统一预览入口，包含 35 个静态卡片与 35 个 demo section。
 - v6 可以通过普通静态 HTTP 服务打开，不依赖 npm、CDN、React 或后端服务。
 - Open Design 官方仓库与 v0.11.0 Release 已通过 GitHub 官方页面核验。
 - 官方 Windows x64 portable 桌面版无需 Node、pnpm 或源码 clone，适合安装到项目外的隔离目录。
-- 当前阶段尚未把 Open Design 写入主站或根依赖；安装将在文档收口后单独执行。
+- Open Design portable 已安装在项目外，并已选择 Codex CLI 与隔离实验目录。
+- Open Design 没有写入主站、根依赖或构建流程。
 
 ## 2. 当前项目技术栈概览
 
@@ -45,7 +46,7 @@ last_updated: 2026-06-24
 
 - TypeScript 只包含 `src/` 和 `vite.config.ts`。
 - 主站正式依赖只由根 `package.json` 管理。
-- `探索/creative-interaction-lab/` 没有被 `src/` import，也不在主站路由中。
+- `external/creative-interaction-lab/` 没有被 `src/` import，也不在主站路由中。
 
 ## 3. 当前目录职责
 
@@ -72,11 +73,11 @@ last_updated: 2026-06-24
 
 ### 外部实验库
 
-- `探索/creative-interaction-lab/`
-- `探索/src/labs/`
-- `探索/docs/`
+- `external/creative-interaction-lab/`
+- `external/interaction-research/src/labs/`
+- `external/interaction-research/docs/`
 
-这些文件当前位于未跟踪目录 `探索/`，只作为外部研究和实验素材。
+这些内容由 `external/README.md` 统一索引；大型实验内容被 Git 忽略，只作为本地研究和实验素材。
 
 ### 后端代码
 
@@ -100,10 +101,11 @@ last_updated: 2026-06-24
 
 ### 隔离工具目录
 
-- 当前没有 `tools/opendesign/`。
-- 当前没有 `external/opendesign/`。
-- 当前没有根目录 `external/` 或 `experiments/`。
-- Open Design 地址明确后，优先使用 `external/opendesign/` 做源码只读评估，或使用 `tools/opendesign/` 运行独立 CLI。
+- Open Design 程序：`C:\Users\acer\Desktop\tools\open-design-0.11.0\`
+- Open Design 主程序：`C:\Users\acer\Desktop\tools\open-design-0.11.0\Open Design.exe`
+- Open Design 工作目录：`external/creative-interaction-lab/`
+- Codex CLI：`C:\Users\acer\.local\bin\codex.exe`
+- 程序本体和 CLI 均位于主站仓库之外。
 
 ## 4. 当前主站正式模块
 
@@ -136,13 +138,13 @@ last_updated: 2026-06-24
 位置：
 
 ```text
-探索/creative-interaction-lab/
+external/creative-interaction-lab/
 ```
 
 当前推荐入口：
 
 ```text
-探索/creative-interaction-lab/visible-preview-v6.html
+external/creative-interaction-lab/visible-preview-v6.html
 ```
 
 重点资料：
@@ -212,17 +214,22 @@ https://github.com/nexu-io/open-design/releases/download/open-design-v0.11.0/ope
 - 支持 Codex 等多种 coding-agent CLI，但本轮不安装 MCP、不改 Codex 配置。
 - 工具能够生成和预览单页 HTML artifact，因此与 `visible-preview-v6.html` 的静态 HTML 形态兼容；是否能直接把现有 HTML 作为可编辑项目导入，仍需启动后做只读 smoke test。
 
-## 9. 是否已安装或 clone
+## 9. 安装与启动结果
 
-- 未 clone。
-- 本评估文档收口时尚未安装；下一阶段将下载 Windows portable zip 到用户下载目录，并解压到项目外的 `Desktop/tools/open-design-0.11.0/`。
-- 未创建独立依赖树。
-- 未运行第三方安装脚本。
-- 未修改根 `package.json` 或 `package-lock.json`。
+- 未 clone Open Design 源码。
+- portable zip 已下载到 `C:\Users\acer\Downloads\open-design-0.11.0-win-x64-portable.zip`。
+- zip SHA256：`0AB74CD05ACB61F2051C479B861321B1A07FE4160609190D4BD9AD4A6287190D`。
+- 已解压到 `C:\Users\acer\Desktop\tools\open-design-0.11.0\`。
+- 主程序为 `C:\Users\acer\Desktop\tools\open-design-0.11.0\Open Design.exe`。
+- portable 已成功启动，未使用 setup.exe。
+- Open Design 已检测并选择 `Codex CLI 0.142.0`。
+- 工作目录已设置为 `C:\Users\acer\Desktop\个站\external\creative-interaction-lab`。
+- 未创建主站依赖树，未运行第三方安装脚本，未修改根 `package.json` 或 `package-lock.json`。
+- 未输入邮箱、Token 或 API Key，未执行生成或应用修改。
 
 ## 10. 后续隔离安装方案
 
-当前选择 portable 桌面版，不需要源码 clone 或 npm 安装：
+当前 portable 桌面版已按以下路径完成安装，不需要源码 clone 或 npm 安装：
 
 ```text
 C:\Users\acer\Desktop\tools\open-design-0.11.0\
@@ -274,13 +281,18 @@ public/labs/opendesign/
 4. 官方 README 声明 local-first 和 no telemetry。
 5. 官方提供 sandboxed HTML preview 与 HTML export。
 
-仍需启动后验证：
+已启动验证：
 
-1. 是否支持把已有本地 HTML 直接作为项目导入。
-2. 是否能以只读方式打开项目，而不自动生成配置或改写文件。
-3. 是否能稳定解析 `visible-preview-v6.html` 的内联 CSS / JS。
-4. 是否方便为 35 个 demo 添加筛选、评分和备注。
-5. 首次启动是否在用户目录生成缓存、工作区或账号配置。
+1. portable 可以直接启动，无需系统安装。
+2. Open Design 能检测本地 Codex CLI。
+3. 可以把 `creative-interaction-lab` 设为独立工作目录，不需要选择主站根目录。
+4. 选择工作目录后，主站与实验目录均未出现 Open Design 生成文件。
+
+仍需后续功能验证：
+
+1. 是否支持把已有 `visible-preview-v6.html` 直接导入为可编辑设计文件。
+2. 是否能稳定解析该文件的内联 CSS / JS。
+3. 是否方便为 35 个 demo 添加筛选、评分和备注。
 
 最低接受条件：
 
@@ -303,7 +315,7 @@ public/labs/opendesign/
 - 无外部脚本和样式资源。
 - 局部 demo 失败不会让全页内容消失。
 
-对 Open Design 工具本身的判断：适合作为候选预览与设计分析工作区，但“直接导入既有 HTML 并只读标注”仍需 portable 启动后的 smoke test 证明。
+对 Open Design 工具本身的判断：适合作为候选预览与设计分析工作区。目录隔离和 Codex CLI 配置已验证；“直接导入既有 HTML 并只读标注”仍需后续单独 smoke test 证明。
 
 ## 13. 是否适合筛选 35 个 demo
 
@@ -387,18 +399,15 @@ creative-interaction-lab
 - 没有修改 Vite 或 GitHub Actions。
 - 没有修改 Caddy、systemd 或香港服务器。
 - 没有把外部实验库接入主站。
-- 没有安装 Open Design，因此没有新增工具依赖或 build 输入。
-
-本轮变更仅限文档。
+- Open Design 已安装在项目外，因此没有新增主站工具依赖或 build 输入。
+- 仓库内只整理文档、外部资料索引和简历 PDF 路径；主站功能代码未变。
+- TypeScript `tsc --noEmit` 与 Vite 6.4.2 production build 均已通过。
 
 ## 17. 推荐下一步
 
-1. 下载官方 v0.11.0 Windows portable zip。
-2. 解压到项目外 `C:\Users\acer\Desktop\tools\open-design-0.11.0\`。
-3. 首次启动先确认程序本体正常，不安装 setup.exe。
-4. 检查首次启动生成的本地缓存与配置位置。
-5. 使用 `visible-preview-v6.html` 的本机 HTTP 地址或实际实验库目录做只读 smoke test。
-6. 不执行 `apply changes`、`write changes` 或自动重构。
-7. 先标注 3 个样本：Demo 14、31、35。
-8. 验证工具不会写入实验库和主站。
-9. 再决定是否用它批量筛选全部 35 个 demo。
+1. 保持 Open Design 工作目录为 `external/creative-interaction-lab/`，不要切换到主站根目录。
+2. 使用 `visible-preview-v6.html` 的本机 HTTP 地址或实际实验库目录做只读 smoke test。
+3. 不执行 `apply changes`、`write changes` 或自动重构。
+4. 先标注 3 个样本：Demo 14、31、35。
+5. 验证工具不会写入实验库和主站。
+6. 再决定是否用它批量筛选全部 35 个 demo。

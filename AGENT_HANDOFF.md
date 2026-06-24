@@ -67,7 +67,7 @@ project_root: C:\Users\acer\Desktop\个站
 │     ├─ HudCard.tsx
 │     ├─ Navbar.tsx
 │     └─ ParticleField.tsx
-├─ c参考图片/
+├─ external/visual-references/
 │  └─ 原始参考图若干
 ├─ dist/
 │  └─ build 输出
@@ -170,7 +170,7 @@ public/david.png
 来源：
 
 ```text
-c参考图片/ChatGPT Image 2026年5月29日 21_52_35.png
+external/visual-references/ChatGPT Image 2026年5月29日 21_52_35.png
 ```
 
 当前 `public/david.png` 是从参考图复制而来，作为临时主视觉。

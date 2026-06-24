@@ -24,7 +24,7 @@ last_updated: 2026-06-03
 开始界面 demo：
 
 ```text
-两个demo/01-完成版-开始界面/
+external/source-demos/01-完成版-开始界面/
   index.html
   style.css
   script.js
@@ -34,7 +34,7 @@ last_updated: 2026-06-03
 神性大卫 demo：
 
 ```text
-两个demo/02-完成版-神性大卫效果/
+external/source-demos/02-完成版-神性大卫效果/
   完成版-神性大卫效果.html
   assets/
     david-source.png
@@ -43,10 +43,10 @@ last_updated: 2026-06-03
 最高优先级说明：
 
 ```text
-两个demo/00-最高优先级文档/
+external/source-demos/00-最高优先级文档/
 ```
 
-下一位 agent 应先读 `两个demo/00-最高优先级文档/README-两个demo总览.md`，再读两个完成版 demo。
+下一位 agent 应先读 `external/source-demos/00-最高优先级文档/README-两个demo总览.md`，再读两个完成版 demo。
 
 ## 3. 建议新增源码结构
 
@@ -382,7 +382,7 @@ canvas.getContext('2d', { alpha: true })
 
 ## 6. 推荐实施顺序
 
-1. 复制 `两个demo/02-完成版-神性大卫效果/assets/david-source.png` 到 `public/david-source.png`。
+1. 复制 `external/source-demos/02-完成版-神性大卫效果/assets/david-source.png` 到 `public/david-source.png`。
 2. 新建 `src/features/divine-david/DivineDavidCanvas.tsx`。
 3. 把神性大卫 demo 的 Canvas 逻辑拆成 React effect。
 4. 将所有 `window.innerWidth / innerHeight` 替换为容器尺寸。
@@ -432,4 +432,3 @@ npm run build
 ## 9. 一句话给下个 agent
 
 先不要急着粘代码。第一个 demo 要做成可卸载的全屏入口 overlay；第二个 demo 要做成受容器约束的右侧 Canvas 主视觉。现有 `Hero` 的 active 系统要保留，并作为两个 demo 接入后的统一交互语义。
-

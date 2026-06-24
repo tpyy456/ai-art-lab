@@ -10,7 +10,7 @@
 2. `docs/ENGINEERING.md`：个人网站架构、组件职责、交互原理、性能策略。
 3. `docs/plans/2026-06-03-demo-integration-plan.md`：如何把两个 demo 接入现有网站。
 4. `src/features/home/Hero.tsx`：当前首页主交互所在文件。
-5. `两个demo/00-最高优先级文档/README-两个demo总览.md`：demo 文件夹的原始说明。
+5. `external/source-demos/00-最高优先级文档/README-两个demo总览.md`：demo 文件夹的原始说明。
 
 ## 当前源码结构
 
@@ -39,7 +39,7 @@ src/
 - `src/features/home/components/`：只服务首页的局部组件，例如鼠标光点、背景粒子、HUD 卡片。
 - `src/components/layout/`：全站布局类组件，目前只有导航栏 `Navbar`。
 - `public/`：Vite 静态资源目录，当前主视觉图片是 `public/david.png`。
-- `两个demo/`：外部 demo 与参考素材，当前没有并入 React 项目。
+- `external/source-demos/`：外部 demo 与参考素材，当前没有并入 React 项目。
 - `docs/`：给后续 agent 使用的工程文档和计划文档。
 
 ## 如何运行
@@ -71,8 +71,7 @@ npm run build
 
 ## 重要边界
 
-- 不要在没有确认前删除 `两个demo/` 内任何文件。
+- 不要在没有确认前删除 `external/source-demos/` 内任何文件。
 - 不要直接把 demo 的全屏 `body/html` 样式粘进主项目。
 - 不要把神性大卫 demo 原样做成全屏，它应该被限制在首页右侧主视觉区域。
 - 后续整合 demo 时，优先新增 `src/features/intro/` 和 `src/features/divine-david/`，不要再把复杂逻辑堆回 `src/components/` 根目录。
-

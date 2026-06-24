@@ -8,7 +8,9 @@ qa-screenshots
 .env.*
 *.local
 
-# 备份与大素材目录（非构建依赖，外部归档，不入库）
+# 备份目录（非构建依赖，不入库）
 个站备份/
-两个demo/
-c参考图片/
+
+# 外部实验与研究素材：保留本地目录索引，内容不参与主站构建或 Git
+external/*
+!external/README.md
