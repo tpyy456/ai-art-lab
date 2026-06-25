@@ -1,5 +1,5 @@
 ---
-status: active
+status: completed
 type: handoff
 module: deployment-unification
 last_updated: 2026-06-26
@@ -7,50 +7,30 @@ last_updated: 2026-06-26
 
 # Current Agent Handoff
 
-## 1. 当前任务
+## 1. 本轮任务
 
-统一当前本地最高版本、GitHub Pages 与香港服务器部署，审查并归档服务器旧目录和旧服务，同时完成必要的低风险性能检查。
+统一本地、GitHub Pages 与香港服务器版本；审查服务器目录、服务和端口；保留回滚备份；完成必要的低风险性能收口。
 
-本轮不是新功能开发，不改视觉，不重构主站。
+本轮没有开发新功能，没有修改视觉，没有重构主站。
 
-## 2. 当前 Git 状态
+## 2. Git 与 GitHub Pages
 
 - 分支：`main`
-- 本地 HEAD：`2aa770edfc59d9798c8373ab15393c2888444cf9`
-- HEAD 摘要：`2aa770e chore: organize external project materials`
-- `origin/main`：`2379f06e26388731f91a2c33edcf824226ab7229`
-- 本地当前领先远程 2 个提交：
-  - `b4a3ba3 docs: finalize opendesign integration assessment`
-  - `2aa770e chore: organize external project materials`
-- 任务开始时存在未跟踪目录 `网站部署/`。该目录是用户要求读取的历史部署资料，不是主站代码；保留本地，不盲目提交或删除。
+- 本轮部署基线：`0d619535b634476a0b70cdf0aedc915dce27dcd5`
+- 基线摘要：`docs: start deployment unification handoff`
+- 远程：`https://github.com/tpyy456/ai-art-lab.git`
+- 本地领先远程的 3 个提交已推送。
+- GitHub Actions run：`28192315275`
+- Actions build：success
+- Actions deploy：success
+- GitHub Pages：`https://tpyy456.github.io/ai-art-lab/`
+- 最新线上入口 JS：`/ai-art-lab/assets/index-JuS68ZUb.js`
+- `?intro=1` 可强制显示 Intro。
+- GitHub Pages 子路由会返回平台级 HTTP 404，但部署的 `404.html` 会正常加载 React 应用；浏览器直接刷新 `/resume` 和 `/projects` 已验证可用。
 
-## 3. GitHub Pages 当前状态
+## 3. “网站部署”历史资料
 
-- 仓库：`https://github.com/tpyy456/ai-art-lab.git`
-- 线上地址：`https://tpyy456.github.io/ai-art-lab/`
-- 强制 Intro：`https://tpyy456.github.io/ai-art-lab/?intro=1`
-- 任务开始时 `origin/main` 落后本地 2 个提交，因此 GitHub Pages 尚未包含本地最高版本。
-- 实际 Actions、线上资源 hash、子路由和缓存状态待本轮验证。
-
-## 4. 香港服务器当前已知状态
-
-- 实例：`ai-art-lab-hk`
-- 当前目标公网 IP：`43.132.178.15`
-- 系统：Ubuntu 24.04
-- 前端正式目录：`/var/www/my-site/frontend/dist`
-- 源码目录：`/var/www/my-site/repo`
-- 后端正式目录：`/var/www/my-site/backend`
-- 数据目录：`/var/www/my-site/data`
-- 部署目录：`/var/www/my-site/deploy`
-- 已知正式服务：
-  - Caddy 前端入口
-  - `ai-art-lab-api.service`
-  - 后端预期监听 `127.0.0.1:3001`
-- 服务器实际目录、端口、进程、Caddy 配置与服务状态尚待本轮只读审查。
-
-## 5. “网站部署”历史资料审查
-
-本地目录：`网站部署/`
+本地 `网站部署/` 已完整读取并保留，未删除、未提交。
 
 包含：
 
@@ -61,78 +41,191 @@ last_updated: 2026-06-26
 
 结论：
 
-- 正式目标 IP 同样是 `43.132.178.15`，不与当前香港服务器冲突。
-- `43.132.78.15` 是曾经误填的历史 IP，只能作为过期记录，不能用于部署。
-- 历史 Caddy 配置同时监听 `80` 和 `8080`。
-- 历史脚本使用 `/var/www/my-site/repo`、`frontend/dist` 与 `deploy` 目录。
-- 资料包含可复用的原子前端替换、Caddy 校验和 SPA 验证经验。
-- 资料中关于“仅前端、后端未启动”和 8080 备用入口的状态可能已经过期，不能直接当作当前服务器事实。
-- 不在交接文档中记录密码、API Key、Token 或其他凭据。
+- 当前正确服务器 IP 是 `43.132.178.15`。
+- `43.132.78.15` 是历史误填 IP，不能用于部署。
+- 历史资料保存了 `/var/www/my-site` 目录结构、原子前端替换和 Caddy 验证经验。
+- 历史 `:80, :8080` 配置已过期；8080 已在本轮停止监听。
+- `.gitignore` 已加入 `网站部署/`，避免把本地历史资料或潜在敏感信息误提交。
 
-## 6. 当前是否发现旧部署
+## 4. 服务器审查结果
 
-本地历史资料表明过去曾使用：
+实例：
 
-- Caddy `:80, :8080`
-- `dist.previous`
-- 8080 国内临时备用入口
+- 名称：`ai-art-lab-hk`
+- 公网 IP：`43.132.178.15`
+- 系统：Ubuntu 24.04
+- Node.js：v22.22.3
+- npm：10.9.8
+- Caddy：2.6.2
 
-服务器上是否仍存在旧目录、旧 dist、Vite/serve/PM2、3000/5173/8080 或重复 systemd 服务，尚待只读审查确认。
+正式目录：
 
-## 7. 本轮允许修改范围
+- repo：`/var/www/my-site/repo`
+- 前端：`/var/www/my-site/frontend/dist`
+- 后端：`/var/www/my-site/backend`
+- 数据：`/var/www/my-site/data`
+- 部署资料：`/var/www/my-site/deploy`
 
-- `docs/plans/CURRENT_AGENT_HANDOFF.md`
-- 部署与交接文档
-- `.gitignore` 中本地历史部署资料的隔离规则
-- GitHub `main` 推送与现有 Pages workflow 触发
-- 香港服务器 `/var/www/my-site/` 正式部署内容
-- 香港服务器 Caddy 与 `ai-art-lab-api.service`
-- 服务器备份目录 `/var/www/backups`
-- 服务器归档目录 `/var/www/archive`
-- 必要的低风险性能配置，例如 Caddy gzip/zstd
+实际发现：
 
-## 8. 本轮禁止修改范围
+- 正式站点目录：1 个，`/var/www/my-site`
+- 前端服务：1 个，Caddy
+- 后端服务：1 个，`ai-art-lab-api.service`
+- Node 后端仅监听 `127.0.0.1:3001`
+- 没有 Vite、npm dev、serve、PM2、Nginx、3000 或 5173 服务
+- `caddy-api.service` 是 Caddy 包自带的 disabled/inactive 备用 unit，不是第二个站点服务，未删除
+- 旧前端副本：`/var/www/my-site/frontend/dist.prev`
 
-- 不改主站视觉和文案
-- 不重写 Hero、IntroOverlay 或 DivineDavidCanvas
-- 不改 Text Collapse 引擎
-- 不新增依赖
-- 不把服务器 `.env`、API Key、Open Design 程序、zip 或 exe 加入 Git
-- 不直接删除旧服务器目录；先备份，再移动到 archive
-- 不覆盖 `/var/www/my-site/backend/.env`
-- 不强推或删除 Git 历史
-- 不关闭 2222，除非明确确认 22 稳定且不再需要备用端口
+## 5. 备份与归档
 
-## 9. 当前验证进度
+修改服务器前已创建：
+
+- `/var/www/backups/my-site-before-unify-20260626-025424.tar.gz`
+- `/var/www/backups/Caddyfile-before-unify-20260626-025424`
+
+已有历史备份继续保留：
+
+- `/var/www/backups/my-site-before-api-deploy-20260620-152547.tar.gz`
+
+旧前端没有删除，已归档为：
+
+- `/var/www/archive/frontend-dist-prev-20260626-025424`
+
+服务器剩余磁盘约 41 GB，备份与归档空间充足。
+
+## 6. 统一部署结果
+
+服务器 repo 已执行：
+
+```text
+git fetch origin --prune
+git reset --hard origin/main
+npm ci
+npm run build
+```
+
+结果：
+
+- TypeScript 通过
+- Vite 6.4.2 build 通过
+- 2014 modules transformed
+- 前端已通过 `rsync --delete` 同步到正式 dist
+- 后端已通过 `rsync --delete --exclude .env` 同步
+- `/var/www/my-site/backend/.env` 确认仍存在，未读取、未覆盖
+- 后端没有第三方依赖，因此没有在 backend 目录强行执行缺少 lockfile 的 `npm ci`
+- systemd unit 已按仓库示例同步
+- `ai-art-lab-api.service` 已 restart，状态 active
+- Caddy 已 validate、format、reload，状态 active
+
+## 7. 当前 Caddy 配置
+
+```caddy
+:80 {
+	encode gzip zstd
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		root * /var/www/my-site/frontend/dist
+		try_files {path} /index.html
+		file_server
+	}
+}
+```
+
+当前监听：
+
+- 22：SSH
+- 2222：临时备用 SSH
+- 80：Caddy
+- 127.0.0.1:3001：Resume API
+
+已停止监听：
+
+- 8080
+- 3000
+- 5173
+
+## 8. 线上验证
+
+香港服务器以下地址均为 HTTP 200：
+
+- `/`
+- `/?intro=1`
+- `/resume`
+- `/about`
+- `/projects`
+- `/contact`
+- `/lab/text-collapse`
+- `/david-source-mobile.webp`
+- `/api/health`
+
+Resume API：
+
+- `POST /api/resume-match` 返回 200
+- 返回 `summary / score / strengths / gaps / suggestions`
+- 实测 score 为 85
+
+静态资源：
+
+- `david-source-mobile.webp` 返回 `image/webp`
+- 大小 14,910 bytes
+- 主 JS 返回 `Content-Encoding: gzip`
+
+移动端：
+
+- 使用 390 × 844 视口检查 GitHub Pages 与香港服务器
+- `?intro=1` 显示 Intro
+- 首页和 `/about`、`/projects`、`/resume`、`/contact`、`/lab/text-collapse` 没有横向溢出
+- 浏览器控制台没有站点 error/warn
+
+## 9. 性能检查
 
 已完成：
 
-1. 读取本轮完整任务说明。
-2. 核对本地分支、HEAD、`origin/main` 与远程地址。
-3. 识别本地领先远程 2 个提交。
-4. 读取 `网站部署/` 全部四个文件并完成历史信息分类。
-5. 确认历史资料没有提供第二个有效服务器目标。
-6. `git fetch origin --prune` 后确认远程未新增提交，本地仍领先 2 个提交。
-7. TypeScript `tsc --noEmit` 通过。
-8. Vite 6.4.2 production build 通过，共转换 2014 个模块。
-9. 已确认 `public/david-source-mobile.webp` 存在，大小 14,910 bytes。
+- mobile David WebP 已存在并在线返回 200
+- Caddy gzip/zstd 已启用
+- 旧 8080 入口已停
+- 没有公开 Vite dev server
+- 没有旧 Node 前端服务
+- Resume API 只在用户执行分析时发起模型请求，不影响首页
 
-待完成：
+没有修改：
 
-1. 提交本轮初始交接文档与本地历史目录隔离规则。
-2. 推送本地最高版本并验证 GitHub Actions / Pages。
-3. 只读审查香港服务器目录、服务、端口和配置。
-4. 创建服务器备份。
-5. 统一服务器 repo、前端 dist、后端 service 与 Caddy。
-6. 验证 Resume API、mobile WebP、SPA 子路由与性能状态。
-7. 更新最终部署文档和本交接文档。
+- DivineDavidCanvas
+- IntroOverlay
+- Hero
+- Text Collapse
+- 页面视觉与文案
 
-## 10. 如果中断，下一个 Agent 从哪里继续
+已知但未改：
+
+- `public/audio/home-ambient.mp3` 不存在。
+- AudioDock 仅执行一次轻量 HEAD 探测，`preload="none"`，随后显示 `AUDIO SOURCE MISSING`；不是当前主要性能瓶颈，因此本轮没有为了消除一个占位请求而改功能代码。
+- `npm ci` 报告 1 个 high severity vulnerability，本轮没有运行可能引入破坏性升级的 `npm audit fix`。
+
+## 10. 管理通道
+
+- 公网 SSH 22/2222 从当前本地网络仍卡在 banner exchange。
+- 腾讯云 OrcaTerm WebShell 可正常管理服务器。
+- 22 与 2222 在服务器内部均正常监听。
+- 2222 按要求继续保留，后续完成 SSH 安全收口时再关闭。
+
+## 11. 本轮修改边界确认
+
+- 未修改 `src/`
+- 未修改 `package.json` / `package-lock.json`
+- 未修改 Vite 或 GitHub Actions workflow
+- 未上传 `.env`、API Key、Open Design 程序、zip 或 exe
+- 未删除任何回滚备份
+
+## 12. 后续接手
 
 1. 先读本文件和 `docs/plans/server-deploy-handoff.md`。
-2. 执行 `git status --short --branch`、`git rev-parse HEAD` 和 `git rev-parse origin/main`。
-3. 不提交或删除 `网站部署/`；它是本地历史部署资料。
-4. 如果 GitHub 还未同步，先构建通过后 push `main`。
-5. 服务器操作必须先只读盘点，再创建 `/var/www/backups` 备份。
-6. 不输出、读取回显或提交服务器 `.env` 的实际值。
-7. 最终只保留 Caddy `:80`、API `127.0.0.1:3001`、SSH 22 与临时备用 SSH 2222。
+2. 日常更新使用 `git push origin main`，GitHub Pages 自动部署。
+3. 香港服务器更新时先备份，再在 `/var/www/my-site/repo` 同步 `origin/main` 并 build。
+4. 后端同步必须继续排除 `.env`。
+5. 目前正式入口只使用 `http://43.132.178.15/`，不要再发布 8080 链接。
+6. 后续优先事项是绑定域名和 HTTPS，其次才是关闭备用 SSH 2222。

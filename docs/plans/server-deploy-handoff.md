@@ -1,140 +1,202 @@
 ---
 status: active
 type: handoff
-module: hong-kong-backend-api
-last_updated: 2026-06-20
+module: hong-kong-production-deployment
+last_updated: 2026-06-26
 ---
 
-# 香港服务器后端 API 部署交接
+# 香港服务器生产部署交接
 
-## 目标
-
-为 Resume 页 JD 匹配提供同源后端接口：
+## 生产入口
 
 ```text
-POST /api/resume-match
+http://43.132.178.15/
 ```
 
-前端只请求 `/api/resume-match`，不直接请求模型服务。
+当前没有域名和 HTTPS。旧的 `:8080` 入口已停止，不再作为正式链接。
 
-## 安全规则
-
-- 真实 API Key 只能写入香港服务器 `/var/www/my-site/backend/.env`。
-- 不要把真实 API Key 写入前端、Git、文档、README、AGENT_HANDOFF、终端日志或浏览器 console。
-- 文档中统一使用 `<AI_API_KEY>` 占位。
-- 不使用 `VITE_API_KEY`。
-- 不在服务日志里打印用户 JD 原文或完整模型请求体。
-
-## 本地仓库新增文件
+## 正式结构
 
 ```text
-backend/server.js
-backend/package.json
-backend/.env.example
-backend/ai-art-lab-api.service.example
-```
-
-`.env.example` 是占位模板，真实 `.env` 不应进入 Git。
-
-## 服务器目标目录
-
-```text
+/var/www/my-site/repo
+/var/www/my-site/frontend/dist
 /var/www/my-site/backend
+/var/www/my-site/data
+/var/www/my-site/deploy
+/var/www/backups
+/var/www/archive
 ```
 
-建议复制或同步以下文件到该目录：
+## 当前版本
+
+2026-06-26 统一部署基线：
 
 ```text
-server.js
-package.json
+0d619535b634476a0b70cdf0aedc915dce27dcd5
 ```
 
-并在服务器手动创建：
+服务器 repo 在部署时已与 `origin/main` 同步。后续仅文档提交可直接 fetch/reset；功能代码变化必须重新 `npm ci && npm run build` 并同步 dist。
 
-```text
-/var/www/my-site/backend/.env
-```
+## 前端
 
-`.env` 示例：
+- Vite production build
+- Caddy 静态托管
+- SPA fallback：`try_files {path} /index.html`
+- 正式前端目录：`/var/www/my-site/frontend/dist`
+- 不使用 Vite preview、npm dev、serve 或 PM2
 
-```text
-AI_API_KEY=<AI_API_KEY>
-AI_API_BASE_URL=https://api.deepseek.com
-AI_MODEL=deepseek-chat
-PORT=3001
-```
-
-## 启动验证
-
-在服务器后端目录内执行：
+更新流程：
 
 ```bash
-node server.js
+cd /var/www/my-site/repo
+git fetch origin --prune
+git status
+git reset --hard origin/main
+npm ci
+npm run build
+rsync -a --delete dist/ /var/www/my-site/frontend/dist/
 ```
 
-本地回环测试：
+执行前必须创建备份。不要在不确认路径时执行 `--delete`。
+
+## 后端
+
+- service：`ai-art-lab-api.service`
+- 目录：`/var/www/my-site/backend`
+- 监听：`127.0.0.1:3001`
+- 健康检查：`GET /api/health`
+- Resume：`POST /api/resume-match`
+- `.env` 权限：600
+
+同步：
 
 ```bash
-curl -X POST http://127.0.0.1:3001/api/resume-match \
-  -H "Content-Type: application/json" \
-  -d '{"jd":"测试 AI 训练师岗位，需要数据标注、评测和规则文档能力"}'
-```
+rsync -a --delete \
+  --exclude ".env" \
+  /var/www/my-site/repo/backend/ \
+  /var/www/my-site/backend/
 
-如果 `.env` 中没有 `AI_API_KEY`，接口应返回明确错误，不应泄露任何 Key。
+sudo install -m 0644 \
+  /var/www/my-site/repo/backend/ai-art-lab-api.service.example \
+  /etc/systemd/system/ai-art-lab-api.service
 
-## systemd
-
-示例文件：
-
-```text
-backend/ai-art-lab-api.service.example
-```
-
-部署时复制为：
-
-```bash
-sudo cp ai-art-lab-api.service.example /etc/systemd/system/ai-art-lab-api.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now ai-art-lab-api.service
-sudo systemctl status ai-art-lab-api.service
+sudo systemctl restart ai-art-lab-api
+sudo systemctl status ai-art-lab-api --no-pager
 ```
 
-service 文件通过 `EnvironmentFile=/var/www/my-site/backend/.env` 读取环境变量，不要把 Key 写进 service 文件。
+当前 backend 只使用 Node 内置模块，没有 `package-lock.json` 和第三方依赖，不要在该目录强行运行 `npm ci`。
+
+真实 API Key 只允许存在于服务器 `/var/www/my-site/backend/.env`。不要读取回显、复制到终端日志、文档或 Git。
 
 ## Caddy
 
-当前前端静态站配置需要增加 `/api/*` 代理：
-
 ```caddy
-:80, :8080 {
-    handle /api/* {
-        reverse_proxy 127.0.0.1:3001
-    }
+:80 {
+	encode gzip zstd
 
-    handle {
-        root * /var/www/my-site/frontend/dist
-        try_files {path} /index.html
-        file_server
-    }
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		root * /var/www/my-site/frontend/dist
+		try_files {path} /index.html
+		file_server
+	}
 }
 ```
 
-修改后验证：
+更新配置后：
 
 ```bash
+sudo caddy fmt --overwrite /etc/caddy/Caddyfile
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl reload caddy
-curl -X POST http://127.0.0.1/api/resume-match \
-  -H "Content-Type: application/json" \
-  -d '{"jd":"测试 AI 训练师岗位，需要数据标注、评测和规则文档能力"}'
+sudo systemctl status caddy --no-pager
 ```
 
-## 当前阻塞
+## 当前服务与端口
 
-2026-06-20 当前环境执行 SSH 连通性检查时，`43.132.178.15:22` 在 banner exchange 阶段超时，无法完成服务器文件同步、`.env` 创建、systemd 配置和 Caddy reload。
+```text
+22                    SSH
+2222                  临时备用 SSH
+80                    Caddy
+127.0.0.1:3001        Resume API
+```
 
-下一次继续时，请先确认：
+不再监听：
 
-1. 腾讯云防火墙是否仍放行 TCP 22。
-2. 当前网络是否可连香港服务器 SSH。
-3. 是否有安全的交互式服务器终端用于手动写入真实 `.env`。
+```text
+8080
+3000
+5173
+```
+
+`caddy-api.service` 是 Caddy 软件包自带的 disabled/inactive 备用 unit，不是第二个网站或后端，不需要删除。
+
+## 备份与归档
+
+本轮创建：
+
+```text
+/var/www/backups/my-site-before-unify-20260626-025424.tar.gz
+/var/www/backups/Caddyfile-before-unify-20260626-025424
+```
+
+历史备份：
+
+```text
+/var/www/backups/my-site-before-api-deploy-20260620-152547.tar.gz
+```
+
+旧前端归档：
+
+```text
+/var/www/archive/frontend-dist-prev-20260626-025424
+```
+
+不要直接 `rm` 这些文件。确认新版本长期稳定并获得用户明确要求后再清理。
+
+## 验证命令
+
+```bash
+curl -I http://127.0.0.1/
+curl -I http://127.0.0.1/resume
+curl -I http://127.0.0.1/about
+curl -I http://127.0.0.1/projects
+curl -I http://127.0.0.1/contact
+curl -I http://127.0.0.1/lab/text-collapse
+curl http://127.0.0.1/api/health
+curl -I http://127.0.0.1/david-source-mobile.webp
+sudo ss -tulpn
+```
+
+2026-06-26 验证结果：
+
+- 全部正式路由 HTTP 200
+- Resume API 返回真实结构化结果
+- mobile WebP HTTP 200
+- gzip 已启用
+- Caddy active
+- API service active
+- repo clean and synced
+
+## 管理通道
+
+从当前本地网络访问 SSH 22/2222 会卡在 banner exchange，但服务器内部 sshd 正常监听两个端口。
+
+可用替代方案：
+
+```text
+腾讯云控制台 → 轻量应用服务器 → ai-art-lab-hk → 登录 → OrcaTerm
+```
+
+2222 暂时保留。后续确认 22 在常用网络稳定后，再进行 SSH 安全收口。
+
+## 已知事项
+
+- 尚未绑定域名，没有 HTTPS。
+- 根依赖审计仍有 1 个 high severity 报告，未运行破坏性 `npm audit fix`。
+- 音频资源尚未接入，AudioDock 会显示 `AUDIO SOURCE MISSING`。
+- GitHub Pages 子路由使用 `404.html` SPA fallback，浏览器刷新可用，但 HTTP 状态仍由 GitHub Pages 返回 404。
