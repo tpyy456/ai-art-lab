@@ -1,186 +1,138 @@
 ---
 status: active
-type: plan
-module: opendesign-and-lab-isolation-assessment
-last_updated: 2026-06-24
+type: handoff
+module: deployment-unification
+last_updated: 2026-06-26
 ---
 
 # Current Agent Handoff
 
 ## 1. 当前任务
 
-本轮完成 Open Design portable 的隔离安装、Codex CLI 选择、`creative-interaction-lab` 工作目录授权，以及项目根目录文件整理。
+统一当前本地最高版本、GitHub Pages 与香港服务器部署，审查并归档服务器旧目录和旧服务，同时完成必要的低风险性能检查。
 
-本轮不是正式接入主站，不迁移 demo，不修改现有 Web 实验室 / AI LAB，不改变页面、路由、构建或服务器配置。
+本轮不是新功能开发，不改视觉，不重构主站。
 
 ## 2. 当前 Git 状态
 
 - 分支：`main`
-- 本轮已提交文档基线：`b4a3ba3 docs: finalize opendesign integration assessment`
-- 本轮文件整理提交：以本文件所在的最新 Git HEAD 为准。
+- 本地 HEAD：`2aa770edfc59d9798c8373ab15393c2888444cf9`
+- HEAD 摘要：`2aa770e chore: organize external project materials`
 - `origin/main`：`2379f06e26388731f91a2c33edcf824226ab7229`
-- 本轮提交完成后，本地主分支领先 `origin/main` 2 个 commit；本轮没有 push。
-- 原未跟踪目录 `探索/` 已完成无损整理并移除。
-- 外部实验库现位于 `external/creative-interaction-lab/`。
-- 早期研究材料现位于 `external/interaction-research/`。
-- 原 `两个demo/` 已整理为 `external/source-demos/`。
-- 原 `c参考图片/` 已整理为 `external/visual-references/`。
-- 根目录简历 PDF 已整理为 `docs/assets/resume/谭培洋简历-AI训练师-新版.pdf`。
-- `external/README.md` 是可提交的目录索引；大型外部内容由 `.gitignore` 隔离。
+- 本地当前领先远程 2 个提交：
+  - `b4a3ba3 docs: finalize opendesign integration assessment`
+  - `2aa770e chore: organize external project materials`
+- 任务开始时存在未跟踪目录 `网站部署/`。该目录是用户要求读取的历史部署资料，不是主站代码；保留本地，不盲目提交或删除。
 
-## 3. 当前线上部署状态
+## 3. GitHub Pages 当前状态
 
-- GitHub 仓库：`https://github.com/tpyy456/ai-art-lab.git`
-- GitHub Pages：`https://tpyy456.github.io/ai-art-lab/`
-- 香港服务器入口：
-  - `http://43.132.178.15`
-  - `http://43.132.178.15:8080`
-- GitHub Pages 与香港服务器此前均已完成前端部署。
-- 香港服务器此前已部署 Resume 匹配后端，前端通过同源 `POST /api/resume-match` 调用。
-- 本轮不修改 GitHub Actions、Caddy、systemd、服务器文件或线上部署。
-- 以上是任务开始时的已知状态；本轮只做工具评估，不以线上部署变更为目标。
+- 仓库：`https://github.com/tpyy456/ai-art-lab.git`
+- 线上地址：`https://tpyy456.github.io/ai-art-lab/`
+- 强制 Intro：`https://tpyy456.github.io/ai-art-lab/?intro=1`
+- 任务开始时 `origin/main` 落后本地 2 个提交，因此 GitHub Pages 尚未包含本地最高版本。
+- 实际 Actions、线上资源 hash、子路由和缓存状态待本轮验证。
 
-## 4. 当前香港服务器状态
+## 4. 香港服务器当前已知状态
 
 - 实例：`ai-art-lab-hk`
+- 当前目标公网 IP：`43.132.178.15`
 - 系统：Ubuntu 24.04
-- 前端目录：`/var/www/my-site/frontend/dist`
+- 前端正式目录：`/var/www/my-site/frontend/dist`
 - 源码目录：`/var/www/my-site/repo`
-- 后端目录：`/var/www/my-site/backend`
-- Caddy 提供静态站、SPA fallback 与 `/api/*` 反向代理。
-- `ai-art-lab-api.service` 此前已启用并监听 `127.0.0.1:3001`。
-- 本轮不登录、不修改服务器；不得在文档中记录账号、Token、API Key 或密码。
+- 后端正式目录：`/var/www/my-site/backend`
+- 数据目录：`/var/www/my-site/data`
+- 部署目录：`/var/www/my-site/deploy`
+- 已知正式服务：
+  - Caddy 前端入口
+  - `ai-art-lab-api.service`
+  - 后端预期监听 `127.0.0.1:3001`
+- 服务器实际目录、端口、进程、Caddy 配置与服务状态尚待本轮只读审查。
 
-## 5. 当前主站技术栈
+## 5. “网站部署”历史资料审查
 
-- Vite 6
-- React 18
-- TypeScript 5.6
-- Tailwind CSS 3.4
-- React Router 6
-- Framer Motion
-- GSAP
-- Lucide React
-- Node 后端位于根目录 `backend/`，不参与前端 `src/` 编译。
+本地目录：`网站部署/`
 
-## 6. 当前主站正式模块
+包含：
 
-- 首页、IntroOverlay、Hero、Divine David
-- About
-- Projects
-- Resume
-- Contact
-- AI LAB / Web 实验室
-- RedScanTransition
-- AudioDock
-- Resume 后端匹配 API
+- `AGENT_HANDOFF.md`
+- `Caddyfile`
+- `deploy-frontend.sh`
+- `verify-deployment.sh`
 
-上述模块均属于正式主站，本轮只读，不修改。
+结论：
 
-## 7. 当前 Web 实验室 / AI LAB 状态
+- 正式目标 IP 同样是 `43.132.178.15`，不与当前香港服务器冲突。
+- `43.132.78.15` 是曾经误填的历史 IP，只能作为过期记录，不能用于部署。
+- 历史 Caddy 配置同时监听 `80` 和 `8080`。
+- 历史脚本使用 `/var/www/my-site/repo`、`frontend/dist` 与 `deploy` 目录。
+- 资料包含可复用的原子前端替换、Caddy 校验和 SPA 验证经验。
+- 资料中关于“仅前端、后端未启动”和 8080 备用入口的状态可能已经过期，不能直接当作当前服务器事实。
+- 不在交接文档中记录密码、API Key、Token 或其他凭据。
 
-主站已经存在正式 AI LAB，不是空项目：
+## 6. 当前是否发现旧部署
 
-- 首页第二屏有 AI LAB / Web 实验室入口。
-- `src/features/lab/AiLabPanel.tsx` 提供实验室面板。
-- `/lab/text-collapse` 是正式路由。
-- `src/features/lab/text-collapse/` 包含稳定的文字坍塌、废墟、REFORM 和重组逻辑。
-- 当前正式实验至少包含 `TEXT COLLAPSE / 文字坍塌`。
+本地历史资料表明过去曾使用：
 
-本轮禁止修改 `src/features/lab/`、Text Collapse 引擎、AI LAB 面板和路由。
+- Caddy `:80, :8080`
+- `dist.previous`
+- 8080 国内临时备用入口
 
-## 8. `creative-interaction-lab` 位置和用途
+服务器上是否仍存在旧目录、旧 dist、Vite/serve/PM2、3000/5173/8080 或重复 systemd 服务，尚待只读审查确认。
 
-- 当前定位：`external/creative-interaction-lab/`
-- Git 状态：外部实验内容被 `.gitignore` 隔离，没有参与主站提交。
-- 当前统一预览候选：`external/creative-interaction-lab/visible-preview-v6.html`
-- 已发现 README、HANDOFF、V6 rescue handoff、迁移说明、交互分析和多版预览文件。
-- README 与交接材料称 v6 为 35 个 demo 的纯静态 HTML 稳定预览。
-- 它是外部独立交互实验库，不是当前正式 AI LAB。
-- 当前未被 `src/` import，未接入主站路由或 AI LAB 面板，不参与主站 build。
+## 7. 本轮允许修改范围
 
-## 9. Open Design 当前定位状态
+- `docs/plans/CURRENT_AGENT_HANDOFF.md`
+- 部署与交接文档
+- `.gitignore` 中本地历史部署资料的隔离规则
+- GitHub `main` 推送与现有 Pages workflow 触发
+- 香港服务器 `/var/www/my-site/` 正式部署内容
+- 香港服务器 Caddy 与 `ai-art-lab-api.service`
+- 服务器备份目录 `/var/www/backups`
+- 服务器归档目录 `/var/www/archive`
+- 必要的低风险性能配置，例如 Caddy gzip/zstd
 
-- 官方仓库：`https://github.com/nexu-io/open-design`
-- v0.11.0 Release：`https://github.com/nexu-io/open-design/releases/tag/open-design-v0.11.0`
-- Windows portable：`https://github.com/nexu-io/open-design/releases/download/open-design-v0.11.0/open-design-0.11.0-win-x64-portable.zip`
-- 已通过 GitHub 官方仓库和 Release 页面核验。
-- 官方桌面版为 Windows x64 原生程序，不需要 Node、pnpm 或源码 clone。
-- 官方声明 local-first、no telemetry，许可证为 Apache-2.0。
-- portable 已下载、解压并成功启动。
-- Open Design 已识别并选择 `Codex CLI 0.142.0`。
-- Open Design 工作目录已设置为 `external/creative-interaction-lab/`，没有选择主站根目录。
-- 没有安装 MCP，没有向 Open Design 输入邮箱、Token 或 API Key，也没有执行生成或应用修改。
+## 8. 本轮禁止修改范围
 
-## 10. 隔离安装状态
+- 不改主站视觉和文案
+- 不重写 Hero、IntroOverlay 或 DivineDavidCanvas
+- 不改 Text Collapse 引擎
+- 不新增依赖
+- 不把服务器 `.env`、API Key、Open Design 程序、zip 或 exe 加入 Git
+- 不直接删除旧服务器目录；先备份，再移动到 archive
+- 不覆盖 `/var/www/my-site/backend/.env`
+- 不强推或删除 Git 历史
+- 不关闭 2222，除非明确确认 22 稳定且不再需要备用端口
 
-- portable zip：`C:\Users\acer\Downloads\open-design-0.11.0-win-x64-portable.zip`
-- SHA256：`0AB74CD05ACB61F2051C479B861321B1A07FE4160609190D4BD9AD4A6287190D`
-- 安装目录：`C:\Users\acer\Desktop\tools\open-design-0.11.0\`
-- 主程序：`C:\Users\acer\Desktop\tools\open-design-0.11.0\Open Design.exe`
-- Codex CLI：`C:\Users\acer\.local\bin\codex.exe`
-- 安装目录位于主站仓库之外，不进入 Git。
-- 未使用 setup.exe。
-- 不修改根 `package.json`、根 `package-lock.json`，不把工具放进 `src/`。
-
-## 11. 本轮修改边界
-
-允许：
-
-- 读取项目和外部实验库。
-- 更新本文件。
-- 新增 `docs/plans/opendesign-integration-assessment.md`。
-- 在项目外安装 Open Design portable。
-- 整理外部实验、参考图片、原始 demo 与文档资产。
-
-禁止：
-
-- 修改 `src/` 中任何文件。
-- 修改主站路由、Hero、AI LAB、Text Collapse、Intro、Divine David。
-- 修改根 `package.json`、根 `package-lock.json`。
-- 修改 GitHub Actions、Vite 部署配置、Caddy 或香港服务器。
-- 将 `creative-interaction-lab` import 或复制进正式主站。
-
-## 12. 当前验证进度
+## 9. 当前验证进度
 
 已完成：
 
-1. 读取本轮任务说明。
-2. 核对 Git 分支、HEAD、`origin/main` 和工作区状态。
-3. 识别并整理原 `探索/creative-interaction-lab/`。
-4. 读取主站技术文档、`src/App.tsx`、正式 AI LAB、Text Collapse、`public/` 和 `backend/`。
-5. 读取外部实验库 README、交接、救援报告、交互分析和迁移说明。
-6. 确认 `visible-preview-v6.html` 存在。
-7. 通过临时本机静态 HTTP 服务实际打开 v6：
-   - 35 个 demo 导航；
-   - 35 张总览卡片；
-   - 35 个 demo section；
-   - Demo 1、21、35 入口切换正常；
-   - 无浏览器 console error / warning；
-   - 无外部 script / stylesheet URL。
-8. 临时静态服务已停止。
-9. 已联网核验 Open Design 官方仓库、v0.11.0 Release 和 Windows portable 资产。
-10. 已新增并收口 `docs/plans/opendesign-integration-assessment.md`。
-11. 已下载并校验 Open Design portable zip。
-12. 已解压并成功启动 `Open Design.exe`。
-13. 已让 Open Design 识别并选择 `Codex CLI 0.142.0`。
-14. 已将 Open Design 工作目录限制为 `external/creative-interaction-lab/`。
-15. 已整理项目根目录中的外部 demo、参考图片、实验库、研究材料与简历 PDF。
+1. 读取本轮完整任务说明。
+2. 核对本地分支、HEAD、`origin/main` 与远程地址。
+3. 识别本地领先远程 2 个提交。
+4. 读取 `网站部署/` 全部四个文件并完成历史信息分类。
+5. 确认历史资料没有提供第二个有效服务器目标。
+6. `git fetch origin --prune` 后确认远程未新增提交，本地仍领先 2 个提交。
+7. TypeScript `tsc --noEmit` 通过。
+8. Vite 6.4.2 production build 通过，共转换 2014 个模块。
+9. 已确认 `public/david-source-mobile.webp` 存在，大小 14,910 bytes。
 
-最终验证：
+待完成：
 
-1. `git diff -- src package.json package-lock.json vite.config.ts .github` 为空。
-2. TypeScript `tsc --noEmit` 通过。
-3. Vite 6.4.2 production build 通过，共转换 2014 个模块。
-4. Open Design 程序、zip 与 Codex CLI 均位于主站仓库外。
-5. `external/` 仅提交目录索引，四类大型本地资料继续被 `.gitignore` 隔离。
-6. 本轮没有 push。
+1. 提交本轮初始交接文档与本地历史目录隔离规则。
+2. 推送本地最高版本并验证 GitHub Actions / Pages。
+3. 只读审查香港服务器目录、服务、端口和配置。
+4. 创建服务器备份。
+5. 统一服务器 repo、前端 dist、后端 service 与 Caddy。
+6. 验证 Resume API、mobile WebP、SPA 子路由与性能状态。
+7. 更新最终部署文档和本交接文档。
 
-## 13. 如果中断，下一个 Agent 从哪里继续
+## 10. 如果中断，下一个 Agent 从哪里继续
 
-1. 先读本文件与 `docs/plans/opendesign-integration-assessment.md`（如果已创建）。
-2. 执行 `git status --short --branch`，确认 `external/` 仅由 `README.md` 进入 Git。
-3. 确认 Open Design 仍显示 `本地 CLI · Codex CLI · 默认`，工作目录仍为 `creative-interaction-lab`。
-4. 如要继续筛选 demo，只在 Open Design 中读取 `external/creative-interaction-lab/`，不要选择主站根目录，不执行自动应用修改。
-5. 外部资料已归档到 `external/`；不要删除 `source-demos/`、`visual-references/` 或实验库内容。
-6. 不修改 `src/`、AI LAB、主站依赖或部署配置。
+1. 先读本文件和 `docs/plans/server-deploy-handoff.md`。
+2. 执行 `git status --short --branch`、`git rev-parse HEAD` 和 `git rev-parse origin/main`。
+3. 不提交或删除 `网站部署/`；它是本地历史部署资料。
+4. 如果 GitHub 还未同步，先构建通过后 push `main`。
+5. 服务器操作必须先只读盘点，再创建 `/var/www/backups` 备份。
+6. 不输出、读取回显或提交服务器 `.env` 的实际值。
+7. 最终只保留 Caddy `:80`、API `127.0.0.1:3001`、SSH 22 与临时备用 SSH 2222。
